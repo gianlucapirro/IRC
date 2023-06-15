@@ -44,8 +44,7 @@ Server::Server(int port, std::string password) : port(port), password(password) 
 void Server::run() {
     try {
         while (true) {
-            // Poll checks for activity (new connections or clients)
-            int activity = poll(&(this->fds[0]), this->fds.size(), -1);  // loops over all fds
+            int activity = poll(&(this->fds[0]), this->fds.size(), -1);
 
             if (activity < 0) {
                 Server::ServerException("Poll error");
@@ -56,7 +55,6 @@ void Server::run() {
             for (size_t i = 0; i < this->fds.size(); i++) {
                 if (this->fds[i].revents & POLLIN) {
                     if (this->fds[i].fd == this->server_fd) {
-                        // Accept new connection
                         int new_socket;
                         socklen_t addrlen = sizeof(this->address);
                         if ((new_socket = accept(this->server_fd, (struct sockaddr*)&(this->address), &addrlen)) < 0) {
@@ -64,21 +62,20 @@ void Server::run() {
                             exit(EXIT_FAILURE);
                         }
 
-                        std::cout << "New connection accepted" << std::endl;
                         pollfd new_fd;
                         new_fd.fd = new_socket;
                         new_fd.events = POLLIN;
                         this->fds.push_back(new_fd);
+                        this->clients.push_back(Client(new_socket, this->password));  // add new client
+                        std::cout << "Client Created" << std::endl;
                     } else {
-                        // Handle input from existing connection
                         ssize_t valread = read(this->fds[i].fd, buffer, sizeof(buffer));
                         if (valread <= 0) {
-                            // Client disconnected, remove from the list
                             close(this->fds[i].fd);
                             this->fds.erase(this->fds.begin() + i);
-                            i--;  // Adjust index because of erase
+                            this->clients.erase(this->clients.begin() + i);  // remove disconnected client
+                            i--;
                         } else {
-                            // Print received message
                             buffer[valread] = '\0';
                             std::cout << "Received: " << buffer << std::endl;
                         }

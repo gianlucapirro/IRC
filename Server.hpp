@@ -9,6 +9,7 @@
 #include <iostream>
 #include <vector>
 #include <fcntl.h>
+#include "Client.hpp"
 
 class Server {
    private:
@@ -17,6 +18,7 @@ class Server {
     int server_fd;
 
     int max_clients;
+    std::vector<Client> clients;
 
     const int port;
     const std::string password;

@@ -9,7 +9,8 @@ PROG = ircserv
 
 # Source files
 SRC =	Main.cpp \
-		Server.cpp 
+		Server.cpp \
+		Client.cpp
 
 all: $(PROG)
 
