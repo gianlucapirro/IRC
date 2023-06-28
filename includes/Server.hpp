@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <poll.h>
+#include <stdlib.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
@@ -15,13 +16,12 @@
 
 class Server {
    private:
-    struct sockaddr_in address;  // family, address, port of server
-    std::vector<pollfd> fds;     // stores all sockets fd
-    int server_fd;               // socket fd of the server
-    const Config config;
-
-    int max_clients;              // max clients that can be in qeuee
+    struct sockaddr_in address;   // family, address, port of server
+    std::vector<pollfd> fds;      // stores all sockets fd
     std::vector<Client> clients;  // vector of connected clients
+    int serverFD;                // socket fd of the server
+
+    const Config config;
 
     void setupServer();
     void createSocket();

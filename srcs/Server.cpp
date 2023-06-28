@@ -13,8 +13,9 @@ void Server::setupServer() {
         setListenMode();
 
         this->fds.resize(1);
-        this->fds[0].fd = this->server_fd;
+        this->fds[0].fd = this->serverFD;
         this->fds[0].events = POLLIN;
+        this->fds[0].revents = 0;
     } catch (const std::runtime_error& ex) {
         std::cerr << ex.what() << std::endl;
         exit(EXIT_FAILURE);
@@ -22,13 +23,13 @@ void Server::setupServer() {
 }
 
 void Server::createSocket() {
-    if ((this->server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
+    if ((this->serverFD = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
         throw std::runtime_error("Server Error: Socket creation failed");
     }
 }
 
 void Server::setSocketOptions(int opt) {
-    if (setsockopt(this->server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt))) {
+    if (setsockopt(this->serverFD, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt))) {
         throw std::runtime_error("Server Error: Failed to attach socket to the port");
     }
 }
@@ -40,13 +41,13 @@ void Server::configureAddress() {
 }
 
 void Server::bindSocket() {
-    if (bind(this->server_fd, (struct sockaddr*)&(this->address), sizeof(this->address)) < 0) {
+    if (bind(this->serverFD, (struct sockaddr*)&(this->address), sizeof(this->address)) < 0) {
         throw std::runtime_error("Server Error: Failed to bind");
     }
 }
 
 void Server::setListenMode() {
-    if (listen(this->server_fd, this->max_clients) < 0) {
+    if (listen(this->serverFD, this->config.) < 0) {
         throw std::runtime_error("Server Error: Failed to set socket to listen mode");
     }
 }
@@ -54,7 +55,7 @@ void Server::setListenMode() {
 void Server::acceptNewConnection() {
     int new_socket;
     socklen_t addrlen = sizeof(this->address);
-    if ((new_socket = accept(this->server_fd, (struct sockaddr*)&(this->address), &addrlen)) < 0) {
+    if ((new_socket = accept(this->serverFD, (struct sockaddr*)&(this->address), &addrlen)) < 0) {
         std::runtime_error("Server Error: New connection not accepted");
         exit(EXIT_FAILURE);
     }
@@ -81,8 +82,8 @@ void Server::handleClient(size_t i, char* buffer) {
 
 void Server::processActivity(char* buffer) {
     for (size_t i = 0; i < this->fds.size(); i++) {
-        if (this->fds[i].revents & POLLIN) {           // check if there is data to read in fd
-            if (this->fds[i].fd == this->server_fd) {  // if there is new data to read on server_fd -> new client
+        if (this->fds[i].revents & POLLIN) {          // check if there is data to read in fd
+            if (this->fds[i].fd == this->serverFD) {  // if there is new data to read on serverFD -> new client
                 acceptNewConnection();
             } else {
                 handleClient(i, buffer);  // else its from an existing client

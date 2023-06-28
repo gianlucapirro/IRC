@@ -39,5 +39,12 @@ fclean: clean
 
 re: fclean all
 
-valgrind: $(PROG)
-	valgrind --leak-check=full ./$(PROG)
+server:
+	docker-compose up --build -d
+	docker exec -it irc-irc_server-1 bash
+
+valgrind:
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./ircserv 1234 password
+
+irssi:
+	docker exec -it irc-irc_server-1 irssi

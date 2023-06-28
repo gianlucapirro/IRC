@@ -1,8 +1,10 @@
 #include "Config.hpp"
 
+#include <cstdlib>
+
 int Config::convertToInt(const char* port) {
     try {
-        return std::stoi(port);
+        return atoi(port);
     } catch (const std::exception& ex) {
         throw std::runtime_error("Config Error: " + std::string(ex.what()));
     }
@@ -22,6 +24,8 @@ std::string Config::convertToString(const char* password) {
 Config::Config(char* port, char* password) : port(convertToInt(port)), password(convertToString(password)) {}
 
 int Config::getPort() const { return this->port; }
+
+const int Config::getMaxClients() const { return this->maxClients; }
 
 const std::string& Config::getPassword() const { return this->password; }
 
