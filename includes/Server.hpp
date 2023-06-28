@@ -12,16 +12,19 @@
 #include <vector>
 
 #include "Client.hpp"
+#include "CommandHandler.hpp"
 #include "Config.hpp"
 
 class Server {
    private:
-    struct sockaddr_in address;   // family, address, port of server
+    int serverFD;  // socket fd of the server
+    const Config config;
+    struct sockaddr_in address;  // family, address, port of server
+
+    CommandHandler commandHandler;
+
     std::vector<pollfd> fds;      // stores all sockets fd
     std::vector<Client> clients;  // vector of connected clients
-    int serverFD;                // socket fd of the server
-
-    const Config config;
 
     void setupServer();
     void createSocket();
@@ -35,6 +38,11 @@ class Server {
 
    public:
     Server(const Config& config);
+
+    void sendMessage(int clientFD, const std::string& message);
+    const Config& getConfig() const;
+    std::vector<pollfd>& getFDS();
+    std::vector<Client>& getClients();
     void run();
 };
 

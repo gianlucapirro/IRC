@@ -5,6 +5,7 @@
 #include <string>
 
 #define BUFFER_SIZE 1024
+#define PASSWORD_BUFFER_SIZE 128
 
 class Config {
    private:
@@ -23,7 +24,7 @@ class Config {
     int getPort() const;
     int getBufferSize() const;
     const std::string& getPassword() const;
-    const int getMaxClients() const;
+    int getMaxClients() const;
 };
 
 #endif

@@ -2,10 +2,9 @@
 
 class Client {
    public:
-    Client(int fd, const std::string& password);
+    Client(int fd);
 
     int getFD() const;
-    const std::string& getPassword() const;
     const std::string& getNick() const;
     const std::string& getUsername() const;
 
@@ -14,7 +13,6 @@ class Client {
 
    private:
     int fd;
-    std::string password;
     std::string nick;
     std::string username;
 };

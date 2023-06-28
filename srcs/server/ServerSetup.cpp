@@ -1,0 +1,52 @@
+#include "Server.hpp"
+
+Server::Server(const Config& config) : config(config), commandHandler(this) { setupServer(); }
+
+void Server::setupServer() {
+    int opt = 1;
+
+    try {
+        createSocket();
+        setSocketOptions(opt);
+        configureAddress();
+        bindSocket();
+        setListenMode();
+
+        this->fds.resize(1);
+        this->fds[0].fd = this->serverFD;
+        this->fds[0].events = POLLIN;
+    } catch (const std::runtime_error& ex) {
+        std::cerr << ex.what() << std::endl;
+        exit(EXIT_FAILURE);
+    }
+}
+
+void Server::createSocket() {
+    if ((this->serverFD = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
+        throw std::runtime_error("Server Error: Socket creation failed");
+    }
+}
+
+void Server::setSocketOptions(int opt) {
+    if (setsockopt(this->serverFD, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt))) {
+        throw std::runtime_error("Server Error: Failed to attach socket to the port");
+    }
+}
+
+void Server::configureAddress() {
+    this->address.sin_family = AF_INET;
+    this->address.sin_addr.s_addr = INADDR_ANY;
+    this->address.sin_port = htons(this->config.getPort());
+}
+
+void Server::bindSocket() {
+    if (bind(this->serverFD, (struct sockaddr*)&(this->address), sizeof(this->address)) < 0) {
+        throw std::runtime_error("Server Error: Failed to bind");
+    }
+}
+
+void Server::setListenMode() {
+    if (listen(this->serverFD, this->config.getMaxClients()) < 0) {
+        throw std::runtime_error("Server Error: Failed to set socket to listen mode");
+    }
+}
