@@ -35,12 +35,13 @@ class Server {
     void processActivity(char* buffer);
     void acceptNewConnection();
     void handleClient(size_t i, char* buffer);
+    void handleBuffer(char* buffer, int valread, int fd);
 
    public:
     Server(const Config& config);
 
     void sendMessage(int clientFD, const std::string& message);
-    Client& searchClient(int clientFD);
+    Client* searchClient(int clientFD);
     bool isNicknameInUse(const std::string& nickname) const;
 
     const Config& getConfig() const;

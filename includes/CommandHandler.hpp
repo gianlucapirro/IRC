@@ -19,8 +19,10 @@ class CommandHandler {
     Server* server;
 
     // commands
+    void handleCap(int clientFD, const std::vector<std::string>& args);
     void handlePass(int clientFD, const std::vector<std::string>& args);
     void handleNick(int clientFD, const std::vector<std::string>& args);
+    void handleUser(int clientFD, const std::vector<std::string>& args);
 };
 
 #endif

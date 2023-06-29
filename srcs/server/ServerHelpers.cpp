@@ -1,12 +1,12 @@
 #include "Server.hpp"
 
-Client& Server::searchClient(int clientFD) {
+Client* Server::searchClient(int clientFD) {
     for (std::vector<Client>::iterator it = this->clients.begin(); it != this->clients.end(); ++it) {
         if (it->getFD() == clientFD) {
-            return *it;
+            return &(*it);  // nee jort het kan niet anders
         }
     }
-    throw std::runtime_error("Server Error: Client not found.");
+    return NULL;
 }
 
 bool Server::isNicknameInUse(const std::string& nickname) const {

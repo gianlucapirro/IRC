@@ -1,4 +1,3 @@
-
 #include "CommandHandler.hpp"
 
 #include <sstream>
@@ -46,49 +45,72 @@ std::vector<std::pair<std::string, std::vector<std::string> > > CommandHandler::
 }
 
 void CommandHandler::handleCommand(int clientFD, const std::string& command, const std::vector<std::string>& args) {
+    std::cout << "========================" << std::endl;
+    std::cout << "Command: " << command << std::endl;
+    for (std::vector<std::string>::const_iterator i = args.begin(); i != args.end(); ++i) {
+        std::cout << *i << std::endl;
+    }
+    std::cout << "========================" << std::endl;
+
+    if (args.empty()) {
+        std::string response =
+            ResponseBuilder("ircserv").addCommand("461").addTrailing("Not enough parameters").build();
+        this->server->sendMessage(clientFD, response);
+        return;
+    }
     if (command == "PASS") {
         handlePass(clientFD, args);
     } else if (command == "NICK") {
         handleNick(clientFD, args);
+    } else if (command == "USER") {
+        handleUser(clientFD, args);
+    }
+}
+
+void CommandHandler::handleCap(int clientFD, const std::vector<std::string>& args) {
+    if (args[0] == "LS") {
+        std::string capabilities = "";
+        std::string response =
+            ResponseBuilder("ircserv").addCommand("CAP").addParameters("* LS :" + capabilities).build();
+        this->server->sendMessage(clientFD, response);
     }
 }
 
 void CommandHandler::handlePass(int clientFD, const std::vector<std::string>& args) {
-    if (args.size() <= 0) return;
     if (args[0] == this->server->getConfig().getPassword()) {
         pollfd newFD;
         newFD.fd = clientFD;
         newFD.events = POLLIN;
         newFD.revents = 0;
         this->server->getFDS().push_back(newFD);
-        Client newClient(clientFD);
-        this->server->getClients().push_back(newClient);
-        std::cout << "Client Created" << std::endl;
-        std::string welcomeMsg = ":ircserv 001 " + newClient.getNick() + " :Welcome to the Internet Relay Network " +
-                                 newClient.getNick() + "!user@localhost";
 
-        this->server->sendMessage(clientFD, welcomeMsg);
+        Client newClient(clientFD);
+        newClient.setIsAuthenticated(true);
+        this->server->getClients().push_back(newClient);
     } else {
-        std::string errorMsg = ":ircserv 464 :Password incorrect";
-        this->server->sendMessage(clientFD, errorMsg);
+        std::cout << "wrong password passed: " << args[0] << std::endl;
+        std::string response = ResponseBuilder("ircserv").addCommand("464").addTrailing("Password incorrect").build();
+        this->server->sendMessage(clientFD, response);
+        // TODO: figure out, if pass wrong. close current fd, or idle and ask try pass again?
     }
 }
 
 void CommandHandler::handleNick(int clientFD, const std::vector<std::string>& args) {
-    if (args.size() <= 0) {
-        std::string response = ResponseBuilder("ircserv").addCommand("431").addTrailing("No nickname given").build();
-        this->server->sendMessage(clientFD, response);
+    Client* client = this->server->searchClient(clientFD);
+    if (client == NULL || !client->getIsAuthenticated()) {
+        std::string message =
+            ResponseBuilder("ircserv").addCommand("451").addTrailing("You have not registered").build();
+        this->server->sendMessage(clientFD, message);
         return;
     }
 
-    Client& client = this->server->searchClient(clientFD);
-    if (!client.isValidNick(args[0])) {
+    if (!client->isValidNickname(args[0])) {
         std::string response = ResponseBuilder("ircserv")
                                    .addCommand("432")
                                    .addParameters("* " + args[0])
                                    .addTrailing("Erroneous nickname")
                                    .build();
-        this->server->sendMessage(clientFD, response);
+        this->server->sendMessage(client->getFD(), response);
         return;
     }
 
@@ -98,13 +120,50 @@ void CommandHandler::handleNick(int clientFD, const std::vector<std::string>& ar
                                    .addParameters("* " + args[0])
                                    .addTrailing("Nickname is already in use")
                                    .build();
+        this->server->sendMessage(client->getFD(), response);
+        return;
+    }
+
+    client->setNick(args[0]);
+    std::string response =
+        ResponseBuilder(client->getNick()).addCommand("NICK").addParameters(client->getNick()).build();
+    this->server->sendMessage(client->getFD(), response);
+}
+
+void CommandHandler::handleUser(int clientFD, const std::vector<std::string>& args) {
+    if (args.size() != 4) {
+        std::string response =
+            ResponseBuilder("ircserv").addCommand("461").addTrailing("Not enough parameters").build();
         this->server->sendMessage(clientFD, response);
         return;
     }
 
-    client.setNick(args[0]);
-    std::cout << "Clients nickname: " << client.getNick() << std::endl;
+    Client* client = this->server->searchClient(clientFD);
+    if (client == NULL || !client->getIsAuthenticated()) {
+        std::string message =
+            ResponseBuilder("ircserv").addCommand("451").addTrailing("You have not registered").build();
+        this->server->sendMessage(clientFD, message);
+        return;
+    }
+    if (!client->isValidUsername(args[0])) {
+        std::string response = ResponseBuilder("ircserv")
+                                   .addCommand("432")
+                                   .addParameters("* " + args[0])
+                                   .addTrailing("Erroneous username")
+                                   .build();
+        this->server->sendMessage(client->getFD(), response);
+        return;
+    }
 
-    std::string response = ResponseBuilder(client.getNick()).addCommand("NICK").addParameters(client.getNick()).build();
-    this->server->sendMessage(clientFD, response);
+    client->setUsername(args[0]);
+    client->setHostname(args[2]);
+
+    std::string welcomeMsg =
+        ResponseBuilder("ircserv")
+            .addCommand("001")
+            .addParameters(client->getNick())
+            .addTrailing("Welcome to the Internet Relay Network " + client->getFullClientIdentifier())
+            .build();
+
+    this->server->sendMessage(clientFD, welcomeMsg);
 }

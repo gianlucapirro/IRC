@@ -4,8 +4,7 @@ FROM ubuntu:latest
 WORKDIR /app
 
 RUN apt-get update && \
-    apt-get install -y build-essential valgrind irssi && \
-    sudo apt-get install netcat
+    apt-get install -y build-essential valgrind irssi netcat
 
 COPY . /app
 
