@@ -13,11 +13,13 @@ PROG = ircserv
 # Source files
 SRC = Main.cpp \
       Server.cpp \
-      ServerAccessors.cpp \
       ServerIO.cpp \
       ServerSetup.cpp \
-      Client.cpp \
+	  ServerHelpers.cpp \
+      ServerAccessors.cpp \
       CommandHandler.cpp \
+      ResponseBuilder.cpp \
+      Client.cpp \
       Config.cpp 
 
 # Prefix 'srcs/' to each source file

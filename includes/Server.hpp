@@ -40,6 +40,9 @@ class Server {
     Server(const Config& config);
 
     void sendMessage(int clientFD, const std::string& message);
+    Client& searchClient(int clientFD);
+    bool isNicknameInUse(const std::string& nickname) const;
+
     const Config& getConfig() const;
     std::vector<pollfd>& getFDS();
     std::vector<Client>& getClients();

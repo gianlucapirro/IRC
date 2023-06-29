@@ -1,6 +1,7 @@
 #include "Server.hpp"
 
 void Server::sendMessage(int clientFD, const std::string& message) {
+    std::cout << message.length() << ": Message send: " << message << std::endl;
     send(clientFD, message.c_str(), message.length(), 0);
 }
 
@@ -12,13 +13,16 @@ void Server::acceptNewConnection() {
         exit(EXIT_FAILURE);
     }
 
-    std::pair<std::string, std::vector<std::string> > parsedCommand;
-    char passwordBuffer[PASSWORD_BUFFER_SIZE];
-    ssize_t valread = read(new_socket, passwordBuffer, PASSWORD_BUFFER_SIZE);
+    char passwordBuffer[BUFFER_SIZE];
+    ssize_t valread = read(new_socket, passwordBuffer, BUFFER_SIZE);
     if (valread > 0) {
         passwordBuffer[valread] = '\0';  // Null terminate the string
-        parsedCommand = this->commandHandler.parseCommand(passwordBuffer);
-        this->commandHandler.handleCommand(new_socket, parsedCommand.first, parsedCommand.second);
+        std::vector<std::pair<std::string, std::vector<std::string> > > parsedCommands =
+            this->commandHandler.parseCommands(passwordBuffer);
+        for (std::vector<std::pair<std::string, std::vector<std::string> > >::iterator it = parsedCommands.begin();
+             it != parsedCommands.end(); ++it) {
+            this->commandHandler.handleCommand(new_socket, it->first, it->second);
+        }
     }
 }
 

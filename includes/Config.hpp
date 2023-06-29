@@ -5,7 +5,6 @@
 #include <string>
 
 #define BUFFER_SIZE 1024
-#define PASSWORD_BUFFER_SIZE 128
 
 class Config {
    private:
