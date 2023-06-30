@@ -5,7 +5,9 @@
 #include "ResponseBuilder.hpp"
 #include "Server.hpp"
 
-CommandHandler::CommandHandler(Server* server) : server(server) {}
+CommandHandler::CommandHandler(Server* server) : server(server) {
+    this->channelHandler = ChannelHandler();
+}
 
 parsedCommand CommandHandler::parseCommand(const std::string& line) {
     std::istringstream iss(line);
@@ -23,8 +25,7 @@ parsedCommand CommandHandler::parseCommand(const std::string& line) {
     return std::make_pair(command, args);
 }
 
-std::vector<parsedCommand> CommandHandler::parseCommands(
-    const std::string& lines) {
+std::vector<parsedCommand> CommandHandler::parseCommands(const std::string& lines) {
     std::vector<parsedCommand> parsedCommands;
     std::istringstream ss(lines);
     std::string line;
@@ -52,8 +53,7 @@ void CommandHandler::handleCommand(int clientFD, const std::string& command, con
     // std::cout << "========================" << std::endl;
 
     if (args.empty()) {
-        std::string response =
-            ResponseBuilder("ircserv").addCommand("461").addTrailing("Not enough parameters").build();
+        std::string response = ResponseBuilder("ircserv").addCommand("461").addTrailing("Not enough parameters").build();
         this->server->sendMessage(clientFD, response);
         return;
     }

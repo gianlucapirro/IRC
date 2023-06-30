@@ -19,7 +19,7 @@ class Channel {
     std::vector<std::pair<bool, Client> > channelUsers;
     
    public:
-    Channel();
+    Channel(Client creator);
     void addClient(Client client);
 
 };
