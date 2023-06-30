@@ -1,8 +1,8 @@
-#include "Client.hpp"
-
 #include <iostream>
 
-Client::Client(int fd) : fd(fd), nick(""), username("") {}
+#include "Server.hpp"
+
+Client::Client(int fd) : fd(fd), isAuthenticated(false), nick(""), username("") {}
 
 // getters
 int Client::getFD() const { return fd; }
@@ -16,6 +16,8 @@ const std::string& Client::getHostname() const { return this->hostname; }
 const std::string Client::getFullClientIdentifier() const {
     return "<" + this->nick + ">!<" + this->username + ">@<" + this->hostname + ">";
 };
+
+std::string& Client::getBuffer() { return this->buffer; }
 
 bool Client::getIsAuthenticated() const { return this->isAuthenticated; }
 
@@ -58,4 +60,14 @@ bool Client::isValidUsername(const std::string& username) {
     }
 
     return true;
+}
+
+void Client::handleIncomingData(const char* data, size_t length, Server& server) {
+    this->buffer.append(data, length);
+    size_t pos;
+    while ((pos = this->buffer.find('\n')) != std::string::npos) {
+        std::string command = this->buffer.substr(0, pos);
+        this->buffer.erase(0, pos + 1);
+        server.handleBuffer(&command[0], command.length(), this->fd);
+    }
 }

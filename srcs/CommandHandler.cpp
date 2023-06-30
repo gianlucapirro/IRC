@@ -45,12 +45,12 @@ std::vector<std::pair<std::string, std::vector<std::string> > > CommandHandler::
 }
 
 void CommandHandler::handleCommand(int clientFD, const std::string& command, const std::vector<std::string>& args) {
-    std::cout << "========================" << std::endl;
-    std::cout << "Command: " << command << std::endl;
-    for (std::vector<std::string>::const_iterator i = args.begin(); i != args.end(); ++i) {
-        std::cout << *i << std::endl;
-    }
-    std::cout << "========================" << std::endl;
+    // std::cout << "========================" << std::endl;
+    // std::cout << "Command: " << command << std::endl;
+    // for (std::vector<std::string>::const_iterator i = args.begin(); i != args.end(); ++i) {
+    //     std::cout << *i << std::endl;
+    // }
+    // std::cout << "========================" << std::endl;
 
     if (args.empty()) {
         std::string response =
@@ -78,15 +78,8 @@ void CommandHandler::handleCap(int clientFD, const std::vector<std::string>& arg
 
 void CommandHandler::handlePass(int clientFD, const std::vector<std::string>& args) {
     if (args[0] == this->server->getConfig().getPassword()) {
-        pollfd newFD;
-        newFD.fd = clientFD;
-        newFD.events = POLLIN;
-        newFD.revents = 0;
-        this->server->getFDS().push_back(newFD);
-
-        Client newClient(clientFD);
-        newClient.setIsAuthenticated(true);
-        this->server->getClients().push_back(newClient);
+        Client* client = this->server->searchClient(clientFD);
+        client->setIsAuthenticated(true);
     } else {
         std::cout << "wrong password passed: " << args[0] << std::endl;
         std::string response = ResponseBuilder("ircserv").addCommand("464").addTrailing("Password incorrect").build();

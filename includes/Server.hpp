@@ -32,16 +32,18 @@ class Server {
     void configureAddress();
     void bindSocket();
     void setListenMode();
-    void processActivity(char* buffer);
+    void processActivity();
     void acceptNewConnection();
-    void handleClient(size_t i, char* buffer);
-    void handleBuffer(char* buffer, int valread, int fd);
+    void createClient(int newSocket);
+    void handleClient(size_t i);
 
    public:
     Server(const Config& config);
 
-    void sendMessage(int clientFD, const std::string& message);
+    void handleBuffer(char* buffer, int valread, int fd);
+
     Client* searchClient(int clientFD);
+    void sendMessage(int clientFD, const std::string& message);
     bool isNicknameInUse(const std::string& nickname) const;
 
     const Config& getConfig() const;

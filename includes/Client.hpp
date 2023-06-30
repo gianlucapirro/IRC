@@ -1,8 +1,11 @@
 #include <string>
 
+class Server;
 class Client {
    private:
     int fd;
+    std::string buffer;
+
     bool isAuthenticated;
     std::string nick;
     std::string username;
@@ -16,6 +19,7 @@ class Client {
     const std::string& getUsername() const;
     const std::string& getHostname() const;
     const std::string getFullClientIdentifier() const;
+    std::string& getBuffer();
     bool getIsAuthenticated() const;
 
     void setNick(const std::string& nick);
@@ -25,4 +29,6 @@ class Client {
 
     bool isValidNickname(const std::string& nick);
     bool isValidUsername(const std::string& user);
+
+    void handleIncomingData(const char* data, size_t length, Server& server);
 };

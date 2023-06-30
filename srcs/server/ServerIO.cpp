@@ -16,28 +16,37 @@ void Server::handleBuffer(char* buffer, int valread, int fd) {
 }
 
 void Server::acceptNewConnection() {
-    int new_socket;
+    int newSocket;
     socklen_t addrlen = sizeof(this->address);
-    if ((new_socket = accept(this->serverFD, (struct sockaddr*)&(this->address), &addrlen)) < 0) {
+    if ((newSocket = accept(this->serverFD, (struct sockaddr*)&(this->address), &addrlen)) < 0) {
         throw std::runtime_error("Server Error: New connection not accepted");
         exit(EXIT_FAILURE);
     }
 
-    char buffer[BUFFER_SIZE];
-    ssize_t valread = read(new_socket, buffer, BUFFER_SIZE);
-    if (valread > 0) {
-        this->handleBuffer(buffer, valread, new_socket);
+    // adding new connection to fds
+    this->createClient(newSocket);
+    Client& newClient = this->clients.back();  // assumes that createClient adds the new client at the end
+
+    char tempBuffer[BUFFER_SIZE];
+    ssize_t valread = read(newSocket, tempBuffer, BUFFER_SIZE);
+    if (valread <= 0) {
+        close(newSocket);
+        this->fds.pop_back();
+        this->clients.pop_back();
+    } else {
+        newClient.handleIncomingData(tempBuffer, valread, *this);
     }
 }
 
-void Server::handleClient(size_t i, char* buffer) {
-    std::cout << "IN HANDLE CLIENT" << std::endl;
+void Server::handleClient(size_t i) {
+    Client& client = this->clients[i];
+    char buffer[BUFFER_SIZE];
     ssize_t valread = read(this->fds[i].fd, buffer, BUFFER_SIZE);
     if (valread <= 0) {
         close(this->fds[i].fd);
         this->fds.erase(this->fds.begin() + i);
         this->clients.erase(this->clients.begin() + i);
     } else {
-        this->handleBuffer(buffer, valread, this->fds[i].fd);
+        client.handleIncomingData(buffer, valread, *this);
     }
 }

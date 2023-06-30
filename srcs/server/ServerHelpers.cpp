@@ -17,3 +17,13 @@ bool Server::isNicknameInUse(const std::string& nickname) const {
     }
     return false;
 }
+
+void Server::createClient(int newSocket) {
+    pollfd newFD;
+    newFD.fd = newSocket;
+    newFD.events = POLLIN;
+    newFD.revents = 0;
+    this->getFDS().push_back(newFD);
+    Client newClient(newSocket);
+    this->getClients().push_back(newClient);
+}
