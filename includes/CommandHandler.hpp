@@ -4,16 +4,19 @@
 #include <iostream>
 #include <vector>
 
+typedef std::pair<std::string, std::vector<std::string> > parsedCommand;
+
 class Server;
 
 class CommandHandler {
    public:
     CommandHandler(Server* server);
-    ~CommandHandler() {}
+    ~CommandHandler() {
+    }
 
     void handleCommand(int clientFD, const std::string& command, const std::vector<std::string>& args);
-    std::pair<std::string, std::vector<std::string> > parseCommand(const std::string& line);
-    std::vector<std::pair<std::string, std::vector<std::string> > > parseCommands(const std::string& lines);
+    parsedCommand parseCommand(const std::string& line);
+    std::vector<parsedCommand> parseCommands(const std::string& lines);
 
    private:
     Server* server;

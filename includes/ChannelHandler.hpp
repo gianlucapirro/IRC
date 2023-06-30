@@ -11,21 +11,12 @@
 #include <iostream>
 #include <vector>
 
-#include "Client.hpp"
-#include "CommandHandler.hpp"
-#include "Config.hpp"
+#include 
 
-
-class Server {
+class ChannelHandler {
    private:
-    int serverFD;  // socket fd of the server
-    const Config config;
-    struct sockaddr_in address;  // family, address, port of server
 
-    CommandHandler commandHandler;
-
-    std::vector<pollfd> fds;      // stores all sockets fd
-    std::vector<Client> clients;  // vector of connected clients
+    std::vector<pollfd> channels;      // stores all sockets fd
 
     void setupServer();
     void createSocket();

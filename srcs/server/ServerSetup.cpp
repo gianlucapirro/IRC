@@ -15,6 +15,11 @@ void Server::setupServer() {
         this->fds.resize(1);
         this->fds[0].fd = this->serverFD;
         this->fds[0].events = POLLIN;
+
+        // Also create client for the server
+        Client newClient(this->serverFD);
+        this->getClients().push_back(newClient);
+
     } catch (const std::runtime_error& ex) {
         std::cerr << ex.what() << std::endl;
         exit(EXIT_FAILURE);

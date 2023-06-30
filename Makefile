@@ -2,7 +2,7 @@
 CC = c++
 
 # Compiler Flags
-CFLAGS = -Wall -Wextra -Werror -std=c++98
+CFLAGS = -Wall -Wextra -Werror -std=c++98 -g
 
 # Includes
 INCLUDES = -Iincludes
@@ -50,10 +50,13 @@ re: fclean all
 
 server:
 	docker-compose up --build -d
-	docker exec -it irc-irc_server-1 bash
+	docker-compose exec irc_server bash
+
+attach:
+	docker-compose exec irc_server bash
 
 valgrind: re
 	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./ircserv 1234 password
 
 irssi:
-	docker exec -it irc-irc_server-1 irssi
+	docker-compose exec irc_server irssi

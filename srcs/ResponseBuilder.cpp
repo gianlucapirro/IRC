@@ -1,6 +1,7 @@
 #include "ResponseBuilder.hpp"
 
-ResponseBuilder::ResponseBuilder(const std::string& prefix) : prefix(prefix) {}
+ResponseBuilder::ResponseBuilder(const std::string& prefix) : prefix(prefix) {
+}
 
 ResponseBuilder& ResponseBuilder::addPrefix(const std::string& prefix) {
     this->prefix = prefix;
@@ -22,4 +23,6 @@ ResponseBuilder& ResponseBuilder::addTrailing(const std::string& trailing) {
     return *this;
 }
 
-std::string ResponseBuilder::build() { return ":" + this->prefix + this->responseStream.str() + "\r\n"; }
+std::string ResponseBuilder::build() {
+    return ":" + this->prefix + this->responseStream.str() + "\r\n";
+}

@@ -2,33 +2,55 @@
 
 #include "Server.hpp"
 
-Client::Client(int fd) : fd(fd), isAuthenticated(false), nick(""), username("") {}
+Client::Client(int fd) : fd(fd), isAuthenticated(false), username("") {
+    this->nick = "";
+}
 
 // getters
-int Client::getFD() const { return fd; }
+int Client::getFD() const {
+    return fd;
+}
 
-const std::string& Client::getNick() const { return this->nick; }
+const std::string& Client::getNick() const {
+    return this->nick;
+}
 
-const std::string& Client::getUsername() const { return this->username; }
+const std::string& Client::getUsername() const {
+    return this->username;
+}
 
-const std::string& Client::getHostname() const { return this->hostname; }
+const std::string& Client::getHostname() const {
+    return this->hostname;
+}
 
 const std::string Client::getFullClientIdentifier() const {
     return "<" + this->nick + ">!<" + this->username + ">@<" + this->hostname + ">";
 };
 
-std::string& Client::getBuffer() { return this->buffer; }
+std::string& Client::getBuffer() {
+    return this->buffer;
+}
 
-bool Client::getIsAuthenticated() const { return this->isAuthenticated; }
+bool Client::getIsAuthenticated() const {
+    return this->isAuthenticated;
+}
 
 // setters
-void Client::setIsAuthenticated(bool isAuthenticated) { this->isAuthenticated = isAuthenticated; }
+void Client::setIsAuthenticated(bool isAuthenticated) {
+    this->isAuthenticated = isAuthenticated;
+}
 
-void Client::setNick(const std::string& nick) { this->nick = nick; }
+void Client::setNick(const std::string& nick) {
+    this->nick = nick;
+}
 
-void Client::setUsername(const std::string& username) { this->username = username; }
+void Client::setUsername(const std::string& username) {
+    this->username = username;
+}
 
-void Client::setHostname(const std::string& hostname) { this->hostname = hostname; }
+void Client::setHostname(const std::string& hostname) {
+    this->hostname = hostname;
+}
 
 // validation
 bool Client::isValidNickname(const std::string& nick) {

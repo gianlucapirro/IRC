@@ -7,7 +7,7 @@
 
 CommandHandler::CommandHandler(Server* server) : server(server) {}
 
-std::pair<std::string, std::vector<std::string> > CommandHandler::parseCommand(const std::string& line) {
+parsedCommand CommandHandler::parseCommand(const std::string& line) {
     std::istringstream iss(line);
     std::string command;
     std::vector<std::string> args;
@@ -23,9 +23,9 @@ std::pair<std::string, std::vector<std::string> > CommandHandler::parseCommand(c
     return std::make_pair(command, args);
 }
 
-std::vector<std::pair<std::string, std::vector<std::string> > > CommandHandler::parseCommands(
+std::vector<parsedCommand> CommandHandler::parseCommands(
     const std::string& lines) {
-    std::vector<std::pair<std::string, std::vector<std::string> > > parsedCommands;
+    std::vector<parsedCommand> parsedCommands;
     std::istringstream ss(lines);
     std::string line;
 
@@ -36,8 +36,7 @@ std::vector<std::pair<std::string, std::vector<std::string> > > CommandHandler::
             line.erase(line.size() - 1);
         }
 
-        std::pair<std::string, std::vector<std::string> > parsedCommand =
-            parseCommand(line);  // parse individual command
+        parsedCommand parsedCommand = parseCommand(line);  // parse individual command
         parsedCommands.push_back(parsedCommand);
     }
 
