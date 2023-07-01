@@ -22,12 +22,20 @@ std::string Config::convertToString(const char* password) {
 }
 
 Config::Config(char* port, char* password)
-    : port(convertToInt(port)), password(convertToString(password)), maxClients(10) {}
+    : port(convertToInt(port)), password(convertToString(password)), maxClients(10) {
+}
 
-int Config::getPort() const { return this->port; }
+int Config::getPort() const {
+    return this->port;
+}
 
-int Config::getMaxClients() const { return this->maxClients; }
+int Config::getMaxClients() const {
+    return this->maxClients;
+}
 
-const std::string& Config::getPassword() const { return this->password; }
+const std::string& Config::getPassword() const {
+    return this->password;
+}
 
-Config::~Config() {}
+Config::~Config() {
+}

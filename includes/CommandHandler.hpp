@@ -3,32 +3,42 @@
 
 #include <iostream>
 #include <vector>
+#include <sstream>
+#include <queue>
 
 #include "ChannelHandler.hpp"
+#include "ResponseBuilder.hpp"
+#include "Config.hpp"
+#include "Client.hpp"
+
 
 typedef std::pair<std::string, std::vector<std::string> > parsedCommand;
-
-class Server;
+typedef std::pair<int, std::string> message; //TODO: make this client instead of using the fd
 
 class CommandHandler {
    public:
-    CommandHandler(Server* server);
+    CommandHandler(std::queue<message> *messages, const Config *config, std::vector<Client> *clients);
     ~CommandHandler() {
     } // TODO: we cant have functions in header file
 
-    void handleCommand(int clientFD, const std::string& command, const std::vector<std::string>& args);
+    void handleCommand(Client &client, const std::string& command, const std::vector<std::string>& args);
     parsedCommand parseCommand(const std::string& line);
-    std::vector<parsedCommand> parseCommands(const std::string& lines);
+    std::vector<parsedCommand> parseCommands(const std::vector<std::string> commands);
+    // void CommandHandler::handleBuffer(char* buffer, int valread, int fd);
 
    private:
-    Server* server;
     ChannelHandler channelHandler;
+    const Config *config;
+    std::queue<message> *messageQueue;
+    std::vector<Client> *clients;  // vector of connected clients
 
     // commands
-    void handleCap(int clientFD, const std::vector<std::string>& args);
-    void handlePass(int clientFD, const std::vector<std::string>& args);
-    void handleNick(int clientFD, const std::vector<std::string>& args);
-    void handleUser(int clientFD, const std::vector<std::string>& args);
+    void handleCap(Client &client, const std::vector<std::string>& args);
+    void handlePass(Client &client, const std::vector<std::string>& args);
+    void handleNick(Client &client, const std::vector<std::string>& args);
+    void handleUser(Client &client, const std::vector<std::string>& args);
+    Client* searchClient(int clientFD);
+    bool isNicknameInUse(const std::string& nickname) const;
 };
 
 #endif

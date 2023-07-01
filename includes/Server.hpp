@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include <vector>
+#include <queue>
 
 #include "Client.hpp"
 #include "CommandHandler.hpp"
@@ -20,6 +21,7 @@ class Server {
    private:
     int serverFD;  // socket fd of the server
     const Config config;
+    std::queue<message> messages;
     struct sockaddr_in address;  // family, address, port of server
 
     CommandHandler commandHandler;
@@ -41,10 +43,11 @@ class Server {
    public:
     Server(const Config& config);
 
-    void handleBuffer(char* buffer, int valread, int fd);
+    void handleBuffer(std::vector<std::string> commands, Client &client);
 
     Client* searchClient(int clientFD);
     void sendMessage(int clientFD, const std::string& message);
+    void sendMessages();
     bool isNicknameInUse(const std::string& nickname) const;
 
     const Config& getConfig() const;

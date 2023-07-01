@@ -84,12 +84,12 @@ bool Client::isValidUsername(const std::string& username) {
     return true;
 }
 
-void Client::handleIncomingData(const char* data, size_t length, Server& server) {
+void Client::handleIncomingData(const char* data, size_t length, std::vector<std::string> &commands) {
     this->buffer.append(data, length);
     size_t pos;
     while ((pos = this->buffer.find('\n')) != std::string::npos) {
         std::string command = this->buffer.substr(0, pos);
         this->buffer.erase(0, pos + 1);
-        server.handleBuffer(&command[0], command.length(), this->fd);
+        commands.push_back(command);
     }
 }

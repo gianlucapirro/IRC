@@ -14,13 +14,21 @@
 
 #include "Client.hpp"
 
+typedef std::pair<bool, Client> ChannelUser;
+
 class Channel {
    private:
-    std::vector<std::pair<bool, Client> > channelUsers;
+    std::vector<ChannelUser> channelUsers;
+    std::string key;
     
    public:
-    Channel(Client creator);
+    Channel(Client &creator, std::string key);
     void addClient(Client client);
+    ChannelUser* getChannelUser(Client &client);
+    bool removeUser(Client& user);
+    void addUser(ChannelUser& user);
+    
+    std::string getKey();
 
 };
 

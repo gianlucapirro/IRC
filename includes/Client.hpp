@@ -1,6 +1,10 @@
-#include <string>
+#ifndef CLIENT_HPP
+#define CLIENT_HPP
 
-class Server;
+#include <string>
+#include <vector>
+
+
 class Client {
    private:
     int fd;
@@ -30,5 +34,7 @@ class Client {
     bool isValidNickname(const std::string& nick);
     bool isValidUsername(const std::string& user);
 
-    void handleIncomingData(const char* data, size_t length, Server& server);
+    void handleIncomingData(const char* data, size_t length, std::vector<std::string> &commands);
 };
+
+#endif

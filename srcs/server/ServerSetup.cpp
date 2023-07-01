@@ -1,6 +1,8 @@
 #include "Server.hpp"
 
-Server::Server(const Config& config) : config(config), commandHandler(this) { setupServer(); }
+Server::Server(const Config& config) : config(config), commandHandler(&this->messages, &config, &this->clients) {
+    setupServer();
+}
 
 void Server::setupServer() {
     int opt = 1;

@@ -8,6 +8,6 @@ RUN apt-get update && \
 
 COPY . /app
 
-RUN make re
+# RUN make re
 
 CMD ["tail", "-f", "/dev/null"]

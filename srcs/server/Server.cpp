@@ -12,6 +12,18 @@ void Server::processActivity() {
     }
 }
 
+void Server::sendMessages() {
+    message msg;
+    
+    size_t nMessages = this->messages.size();
+
+    for (size_t i = 0; i < nMessages; i++) {
+        msg = this->messages.front();
+        this->sendMessage(msg.first, msg.second);
+        this->messages.pop();
+    }
+}
+
 void Server::run() {
     try {
         while (true) {
@@ -22,6 +34,7 @@ void Server::run() {
             }
 
             processActivity();
+            sendMessages();
         }
     } catch (const std::exception& e) {
         std::cerr << e.what() << '\n';
