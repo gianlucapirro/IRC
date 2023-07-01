@@ -60,7 +60,7 @@ bool Client::isValidNickname(const std::string& nick) {
     // Check the remaining characters
     for (size_t i = 1; i < nick.size(); ++i) {
         if (!isalnum(nick[i]) && nick[i] != '-' && nick[i] != '[' && nick[i] != ']' && nick[i] != '\\' &&
-            nick[i] != '`' && nick[i] != '^' && nick[i] != '{' && nick[i] != '}') {
+            nick[i] != '`' && nick[i] != '^' && nick[i] != '{' && nick[i] != '}' && nick[i] != '_') {
             return false;
         }
     }

@@ -8,6 +8,6 @@ std::vector<pollfd>& Server::getFDS() {
     return this->fds;
 }
 
-std::vector<Client>& Server::getClients() {
+std::vector<Client*>& Server::getClients() {
     return this->clients;
 }

@@ -1,6 +1,6 @@
 #include "CommandHandler.hpp"
 
-CommandHandler::CommandHandler(std::queue<message>* messages, const Config* config, std::vector<Client>* clients) {
+CommandHandler::CommandHandler(std::queue<message>* messages, const Config* config, std::vector<Client*>* clients) {
     this->channelHandler = ChannelHandler();
     this->messageQueue = messages;
     this->config = config;
@@ -44,13 +44,13 @@ std::vector<parsedCommand> CommandHandler::parseCommands(std::vector<std::string
     return parsedCommands;
 }
 
-void CommandHandler::handleCommand(Client &client, const std::string& command, const std::vector<std::string>& args) {
+void CommandHandler::handleCommand(Client *client, const std::string& command, const std::vector<std::string>& args) {
 
     if (args.empty()) {
         std::string response =
             ResponseBuilder("ircserv").addCommand("461").addTrailing("Not enough parameters").build();
 
-        this->messageQueue->push(std::make_pair(client.getFD(), response));
+        this->messageQueue->push(std::make_pair(client->getFD(), response));
         return;
     }
     if (command == "PASS") {
@@ -61,44 +61,47 @@ void CommandHandler::handleCommand(Client &client, const std::string& command, c
         handleUser(client, args);
     } else if (command == "JOIN") {
         this->channelHandler.join(client, args, this->messageQueue);
+    } else if (command == "PRIVMSG") {
+        handlePrivMsg(client, args);
     }
+
 }
 
-void CommandHandler::handleCap(Client &client, const std::vector<std::string>& args) {
+void CommandHandler::handleCap(Client *client, const std::vector<std::string>& args) {
     if (args[0] == "LS") {
         std::string capabilities = "";
         std::string response =
             ResponseBuilder("ircserv").addCommand("CAP").addParameters("* LS :" + capabilities).build();
-        this->messageQueue->push(std::make_pair(client.getFD(), response));
+        this->messageQueue->push(std::make_pair(client->getFD(), response));
     }
 }
 
-void CommandHandler::handlePass(Client &client, const std::vector<std::string>& args) {
+void CommandHandler::handlePass(Client *client, const std::vector<std::string>& args) {
     if (args[0] == this->config->getPassword()) {
-        client.setIsAuthenticated(true);
+        client->setIsAuthenticated(true);
     } else {
         std::cout << "wrong password passed: " << args[0] << std::endl;
         std::string response = ResponseBuilder("ircserv").addCommand("464").addTrailing("Password incorrect").build();
-        this->messageQueue->push(std::make_pair(client.getFD(), response));
+        this->messageQueue->push(std::make_pair(client->getFD(), response));
         // TODO: figure out, if pass wrong. close current fd, or idle and ask try pass again?
     }
 }
 
-void CommandHandler::handleNick(Client &client, const std::vector<std::string>& args) {
-    if (!client.getIsAuthenticated()) {
+void CommandHandler::handleNick(Client *client, const std::vector<std::string>& args) {
+    if (!client->getIsAuthenticated()) {
         std::string response =
             ResponseBuilder("ircserv").addCommand("451").addTrailing("You have not registered").build();
-        this->messageQueue->push(std::make_pair(client.getFD(), response));
+        this->messageQueue->push(std::make_pair(client->getFD(), response));
         return;
     }
 
-    if (!client.isValidNickname(args[0])) {
+    if (!client->isValidNickname(args[0])) {
         std::string response = ResponseBuilder("ircserv")
                                    .addCommand("432")
                                    .addParameters("* " + args[0])
                                    .addTrailing("Erroneous nickname")
                                    .build();
-        this->messageQueue->push(std::make_pair(client.getFD(), response));
+        this->messageQueue->push(std::make_pair(client->getFD(), response));
         return;
     }
 
@@ -108,65 +111,81 @@ void CommandHandler::handleNick(Client &client, const std::vector<std::string>& 
                                    .addParameters("* " + args[0])
                                    .addTrailing("Nickname is already in use")
                                    .build();
-        this->messageQueue->push(std::make_pair(client.getFD(), response));
+        this->messageQueue->push(std::make_pair(client->getFD(), response));
         return;
     }
 
-    client.setNick(args[0]);
-    const std::string nick = client.getNick();
+    client->setNick(args[0]);
+    const std::string nick = client->getNick();
     std::string response = ResponseBuilder(nick).addCommand("NICK").addParameters(nick).build();
-    this->messageQueue->push(std::make_pair(client.getFD(), response));
+    this->messageQueue->push(std::make_pair(client->getFD(), response));
 }
 
-void CommandHandler::handleUser(Client &client, const std::vector<std::string>& args) {
+void CommandHandler::handleUser(Client *client, const std::vector<std::string>& args) {
     if (args.size() != 4) {
         std::string response =
             ResponseBuilder("ircserv").addCommand("461").addTrailing("Not enough parameters").build();
-        this->messageQueue->push(std::make_pair(client.getFD(), response));
+        this->messageQueue->push(std::make_pair(client->getFD(), response));
         return;
     }
 
-    if (!client.getIsAuthenticated()) {
+    if (!client->getIsAuthenticated()) {
         std::string response =
             ResponseBuilder("ircserv").addCommand("451").addTrailing("You have not registered").build();
-        this->messageQueue->push(std::make_pair(client.getFD(), response));
+        this->messageQueue->push(std::make_pair(client->getFD(), response));
         return;
     }
-    if (!client.isValidUsername(args[0])) {
+    if (!client->isValidUsername(args[0])) {
         std::string response = ResponseBuilder("ircserv")
                                    .addCommand("432")
                                    .addParameters("* " + args[0])
                                    .addTrailing("Erroneous username")
                                    .build();
-        this->messageQueue->push(std::make_pair(client.getFD(), response));
+        this->messageQueue->push(std::make_pair(client->getFD(), response));
         return;
     }
 
-    client.setUsername(args[0]);
-    client.setHostname(args[2]);
+    client->setUsername(args[0]);
+    client->setHostname(args[2]);
 
     std::string welcomeMsg =
         ResponseBuilder("ircserv")
             .addCommand("001")
-            .addParameters(client.getNick())
-            .addTrailing("Welcome to the Internet Relay Network " + client.getFullClientIdentifier())
+            .addParameters(client->getNick())
+            .addTrailing("Welcome to the Internet Relay Network " + client->getFullClientIdentifier())
             .build();
 
-    this->messageQueue->push(std::make_pair(client.getFD(), welcomeMsg));
+    this->messageQueue->push(std::make_pair(client->getFD(), welcomeMsg));
 }
 
+void CommandHandler::handlePrivMsg(Client *client, const std::vector<std::string>& args) {
+    if (!client->getIsAuthenticated()) {
+        std::string response = ResponseBuilder("ircserv").addCommand("451").addTrailing("You have not registered").build();
+        this->messageQueue->push(std::make_pair(client->getFD(), response));
+        return;
+    }
+
+    std::string channelOrUser = args[0];
+    if (channelOrUser[0] == '#') {
+        this->channelHandler.handleMsg(client, args, this->messageQueue);
+    }
+
+}
+
+
+
 Client* CommandHandler::searchClient(int clientFD) {
-    for (std::vector<Client>::iterator it = this->clients->begin(); it != this->clients->end(); ++it) {
-        if (it->getFD() == clientFD) {
-            return &(*it);  // nee jort het kan niet anders
+    for (std::vector<Client*>::iterator it = this->clients->begin(); it != this->clients->end(); ++it) {
+        if ((*it)->getFD() == clientFD) {
+            return *it;  // nee jort het kan niet anders, dat dacht jij
         }
     }
     return NULL;
 }
 
 bool CommandHandler::isNicknameInUse(const std::string& nickname) const {
-    for (size_t i = 0; i < clients->size(); ++i) {
-        if ((*clients)[i].getNick() == nickname) {
+    for (size_t i = 0; i < this->clients->size(); ++i) {
+        if ((*this->clients)[i]->getNick() == nickname) {
             return true;
         }
     }

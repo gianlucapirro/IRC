@@ -27,7 +27,7 @@ class Server {
     CommandHandler commandHandler;
 
     std::vector<pollfd> fds;      // stores all sockets fd
-    std::vector<Client> clients;  // vector of connected clients
+    std::vector<Client*> clients;  // vector of connected clients
 
     void setupServer();
     void createSocket();
@@ -43,7 +43,7 @@ class Server {
    public:
     Server(const Config& config);
 
-    void handleBuffer(std::vector<std::string> commands, Client &client);
+    void handleBuffer(std::vector<std::string> commands, Client *client);
 
     Client* searchClient(int clientFD);
     void sendMessage(int clientFD, const std::string& message);
@@ -52,7 +52,7 @@ class Server {
 
     const Config& getConfig() const;
     std::vector<pollfd>& getFDS();
-    std::vector<Client>& getClients();
+    std::vector<Client*>& getClients();
     void run();
 };
 

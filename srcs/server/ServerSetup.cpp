@@ -1,6 +1,6 @@
 #include "Server.hpp"
 
-Server::Server(const Config& config) : config(config), commandHandler(&this->messages, &config, &this->clients) {
+Server::Server(const Config& config) : config(config), commandHandler(&this->messages, &config, &(this->clients)) {
     setupServer();
 }
 
@@ -19,7 +19,7 @@ void Server::setupServer() {
         this->fds[0].events = POLLIN;
 
         // Also create client for the server
-        Client newClient(this->serverFD);
+        Client* newClient = new Client(this->serverFD);
         this->getClients().push_back(newClient);
 
     } catch (const std::runtime_error& ex) {

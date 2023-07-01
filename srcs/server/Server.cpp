@@ -40,3 +40,5 @@ void Server::run() {
         std::cerr << e.what() << '\n';
     }
 }
+
+// TODO: Make sure that server frees all of its client when it exits

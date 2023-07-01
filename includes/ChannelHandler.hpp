@@ -24,14 +24,15 @@ typedef std::pair<int, std::string> message;
 
 class ChannelHandler {
    private:
-    std::vector<Channel> channels;
+    std::vector<Channel*> channels;
 
-    Channel* getChannelByClient(Client &client);
+    Channel* getChannelByClient(Client* client);
     Channel* getChannelByKey(std::string key);
 
    public:
     ChannelHandler();
-    void join(Client &client, const std::vector<std::string>& args, std::queue<message> *messageQueue);
+    void join(Client *client, const std::vector<std::string>& args, std::queue<message> *messageQueue);
+    void handleMsg(Client* client, const std::vector<std::string>& args, std::queue<message> *messageQueue);
 };
 
 #endif
