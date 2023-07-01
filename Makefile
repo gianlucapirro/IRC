@@ -2,7 +2,7 @@
 CC = c++
 
 # Compiler Flags
-CFLAGS = -Wall -Wextra -Werror -std=c++98 -g -fsanitize=address
+CFLAGS = -Wall -Wextra -Werror -std=c++98 -g
 
 # Includes
 INCLUDES = -Iincludes

@@ -41,18 +41,20 @@ void Channel::addUser(Client *client, bool isOperator) {
 }
 
 void Channel::sendMsg(Client* client, const std::vector<std::string>& args, std::queue<message> *messageQueue) {
-    std::string response = client->getNick() + " " + "PRIVMSG" + " ";
+    std::string response = ":" + client->getNick() + " PRIVMSG";
 
     std::ostringstream oss;
-    for(size_t i = 1; i < args.size(); ++i) {
-        if(i != 0)
-            oss << " ";
+    for(size_t i = 0; i < args.size(); ++i) {
+        oss << " ";
         oss << args[i];
     }
     response += oss.str();
+    response += "\r\n";
 
     for (size_t i = 0; i < this->channelUsers.size(); i++) {
         ChannelUser *user = this->channelUsers[i];
-        messageQueue->push(std::make_pair(user->client->getFD(), response));
+        if (user->client->getFD() != client->getFD()) {
+            messageQueue->push(std::make_pair(user->client->getFD(), response));
+        }
     }
 }
