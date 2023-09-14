@@ -22,7 +22,8 @@ SRC = Main.cpp \
       ChannelHandler.cpp \
       Channel.cpp \
       Client.cpp \
-      Config.cpp 
+      Config.cpp \
+	  utils.cpp
 
 # Prefix 'srcs/' to each source file
 SRC := $(addprefix srcs/, $(SRC))

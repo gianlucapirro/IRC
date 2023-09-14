@@ -1,9 +1,9 @@
 #include "Server.hpp"
+#include "utils.hpp"
 
 Server::Server(const Config& config) : config(config), commandHandler(&this->messages, &config, &(this->clients)) {
     setupServer();
 }
-
 void Server::setupServer() {
     int opt = 1;
 
@@ -29,9 +29,11 @@ void Server::setupServer() {
 }
 
 void Server::createSocket() {
-    if ((this->serverFD = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
+	this->serverFD = socket(AF_INET, SOCK_STREAM, 0);
+    if (this->serverFD == 0) {
         throw std::runtime_error("Server Error: Socket creation failed");
     }
+	setNonBlocking(this->serverFD);
 }
 
 void Server::setSocketOptions(int opt) {

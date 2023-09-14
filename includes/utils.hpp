@@ -12,5 +12,6 @@
 #include <vector>
 #include <queue>
 
+int setNonBlocking(int fd);
 
 #endif

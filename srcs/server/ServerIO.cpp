@@ -1,4 +1,5 @@
 #include "Server.hpp"
+#include "utils.hpp"
 
 void Server::sendMessage(int clientFD, const std::string& message) {
     // std::cout << message.length() << ": Message send: " << message << std::endl;

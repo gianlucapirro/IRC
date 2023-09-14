@@ -1,8 +1,9 @@
 #include "Server.hpp"
-
+#include "utils.hpp"
 
 void Server::createClient(int newSocket) {
     pollfd newFD;
+	setNonBlocking(newSocket);
     newFD.fd = newSocket;
     newFD.events = POLLIN;
     newFD.revents = 0;
