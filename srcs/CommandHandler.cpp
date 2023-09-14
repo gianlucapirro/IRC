@@ -31,7 +31,7 @@ std::vector<parsedCommand> CommandHandler::parseCommands(std::vector<std::string
         command = commands[i];
 
         // Remove the line ending
-        command.erase(command.size() - 1);
+        // command.erase(command.size() - 1);
 
         // remove carriage return character at the end if it exists
         if (!command.empty() && command[command.size() - 1] == '\r') {

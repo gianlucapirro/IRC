@@ -66,3 +66,6 @@ irssi:
 
 nc:
 	nc localhost 1234
+
+start_netcat:
+	printf "PASS pass \r\nNICK jort \r\nUSER root root localhost :root \r\n" | nc localhost 1234
