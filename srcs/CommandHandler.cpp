@@ -80,7 +80,7 @@ void CommandHandler::handlePass(Client *client, const std::vector<std::string>& 
     if (args[0] == this->config->getPassword()) {
         client->setIsAuthenticated(true);
     } else {
-        std::string response = ResponseBuilder("ircserv").addCommand("464").addTrailing("Password incorrect").build();
+        std::string response = ResponseBuilder("ircserv").addCommand("464").addParameters("").addTrailing("Password incorrect").build();
         this->messageQueue->push(std::make_pair(client->getFD(), response));
         // TODO: figure out, if pass wrong. close current fd, or idle and ask try pass again?
     }
@@ -89,7 +89,7 @@ void CommandHandler::handlePass(Client *client, const std::vector<std::string>& 
 void CommandHandler::handleNick(Client *client, const std::vector<std::string>& args) {
     if (!client->getIsAuthenticated()) {
         std::string response =
-            ResponseBuilder("ircserv").addCommand("451").addTrailing("You have not registered").build();
+            ResponseBuilder("ircserv").addCommand("451").addParameters("").addTrailing("You have not registered").build();
         this->messageQueue->push(std::make_pair(client->getFD(), response));
         return;
     }
@@ -132,7 +132,7 @@ void CommandHandler::handleUser(Client *client, const std::vector<std::string>& 
 
     if (!client->getIsAuthenticated()) {
         std::string response =
-            ResponseBuilder("ircserv").addCommand("451").addTrailing("You have not registered").build();
+            ResponseBuilder("ircserv").addCommand("451").addParameters("").addTrailing("You have not registered").build();
         this->messageQueue->push(std::make_pair(client->getFD(), response));
         return;
     }
