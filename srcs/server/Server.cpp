@@ -20,6 +20,7 @@ void Server::sendMessages() {
     for (size_t i = 0; i < nMessages; i++) {
         msg = this->messages.front();
         this->sendMessage(msg.first, msg.second);
+		std::cout << "Send: " << msg.second << std::endl;
         this->messages.pop();
     }
 }

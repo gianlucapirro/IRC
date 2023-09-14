@@ -62,3 +62,6 @@ valgrind: re
 
 irssi:
 	docker-compose exec irc_server irssi
+
+nc:
+	nc localhost 1234

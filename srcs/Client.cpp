@@ -89,7 +89,32 @@ void Client::handleIncomingData(const char* data, size_t length, std::vector<std
     size_t pos;
     while ((pos = this->buffer.find('\n')) != std::string::npos) {
         std::string command = this->buffer.substr(0, pos);
+		std::cout << "Received: " << command << std::endl;
         this->buffer.erase(0, pos + 1);
         commands.push_back(command);
     }
+}
+
+bool Client::canBeRegistered() const {
+	if (this->isRegistered)
+		return false;
+	if (!this->getIsAuthenticated())
+		return false;
+	if (this->getUsername() == "" || this->getHostname() == "")
+		return false;
+	if (this->getNick() == "")	
+		return false;
+	return true;
+}
+
+void Client::registerClient(std::queue<message>* messageQueue) {
+	this->isRegistered = true;
+	std::string welcomeMsg =
+	ResponseBuilder("ircserv")
+		.addCommand("001")
+		.addParameters(this->getNick())
+		.addTrailing("Welcome to the Internet Relay Network " + this->getFullClientIdentifier())
+		.build();
+
+	messageQueue->push(std::make_pair(this->getFD(), welcomeMsg));
 }

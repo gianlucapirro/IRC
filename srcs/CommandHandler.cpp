@@ -80,7 +80,6 @@ void CommandHandler::handlePass(Client *client, const std::vector<std::string>& 
     if (args[0] == this->config->getPassword()) {
         client->setIsAuthenticated(true);
     } else {
-        std::cout << "wrong password passed: " << args[0] << std::endl;
         std::string response = ResponseBuilder("ircserv").addCommand("464").addTrailing("Password incorrect").build();
         this->messageQueue->push(std::make_pair(client->getFD(), response));
         // TODO: figure out, if pass wrong. close current fd, or idle and ask try pass again?
@@ -119,6 +118,8 @@ void CommandHandler::handleNick(Client *client, const std::vector<std::string>& 
     const std::string nick = client->getNick();
     std::string response = ResponseBuilder(nick).addCommand("NICK").addParameters(nick).build();
     this->messageQueue->push(std::make_pair(client->getFD(), response));
+	if (client->canBeRegistered())
+		client->registerClient(this->messageQueue);
 }
 
 void CommandHandler::handleUser(Client *client, const std::vector<std::string>& args) {
@@ -145,17 +146,10 @@ void CommandHandler::handleUser(Client *client, const std::vector<std::string>& 
         return;
     }
 
-    client->setUsername(args[0]);
-    client->setHostname(args[2]);
-
-    std::string welcomeMsg =
-        ResponseBuilder("ircserv")
-            .addCommand("001")
-            .addParameters(client->getNick())
-            .addTrailing("Welcome to the Internet Relay Network " + client->getFullClientIdentifier())
-            .build();
-
-    this->messageQueue->push(std::make_pair(client->getFD(), welcomeMsg));
+	client->setUsername(args[0]);
+	client->setHostname(args[2]);
+	if (client->canBeRegistered())
+		client->registerClient(this->messageQueue);
 }
 
 void CommandHandler::handlePrivMsg(Client *client, const std::vector<std::string>& args) {
