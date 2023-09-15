@@ -64,6 +64,8 @@ int CommandHandler::handleCommand(Client *client, const std::string& command, co
         handleKick(client, args);
     } else if (command == "QUIT") {
         return QUIT_USER;
+    } else if (command == "PART") {
+        handleLeave(client, args);
     }
     return NO_ACTION;
 }
@@ -115,9 +117,9 @@ void CommandHandler::handleNick(Client *client, const std::vector<std::string>& 
         return;
     }
 
-    client->setNick(args[0]);
     const std::string nick = client->getNick();
-    std::string response = ResponseBuilder(nick).addCommand("NICK").addParameters(nick).build();
+    std::string response = ResponseBuilder(nick).addCommand("NICK").addParameters(args[0]).build();
+    client->setNick(args[0]);
     this->messageQueue->push(std::make_pair(client->getFD(), response));
 	if (client->canBeRegistered())
 		client->registerClient(this->messageQueue);
@@ -190,6 +192,21 @@ void CommandHandler::handleKick(Client *client, const std::vector<std::string>& 
 
 
     this->channelHandler.handleKick(client, channelsToKick, clientsToKick, this->clients, this->messageQueue, reason);
+}
+
+void CommandHandler::handleLeave(Client* client, const std::vector<std::string>& args) {
+    if (!client->getIsRegistered()) {
+        std::string response = ResponseBuilder("ircserv").addCommand("451").addTrailing("You have not registered").build();
+        this->messageQueue->push(std::make_pair(client->getFD(), response));
+        return;
+    }
+    if (args.size() < 1) {
+        std::string response = ResponseBuilder("ircserv").addCommand("461").addTrailing("Need more parameters").build();
+        this->messageQueue->push(std::make_pair(client->getFD(), response));
+        return;
+    }
+    std::vector<std::string> channelsToLeave = splitString(args[0], ',');
+    this->channelHandler.handleLeave(client, channelsToLeave, this->messageQueue);
 }
 
 

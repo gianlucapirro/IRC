@@ -58,3 +58,12 @@ void Channel::sendMsg(Client* client, const std::vector<std::string>& args, std:
         }
     }
 }
+
+void Channel::broadcast(std::string msg, std::queue<message> *messageQueue) {
+    msg += "\r\n";
+
+    for (size_t i = 0; i < this->channelUsers.size(); i++) {
+        ChannelUser *user = this->channelUsers[i];
+        messageQueue->push(std::make_pair(user->client->getFD(), msg));
+    }
+}

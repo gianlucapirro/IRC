@@ -18,3 +18,15 @@ Client *getClientByNick(std::vector<Client*>* clients, std::string nick) {
 
     return NULL;
 }
+
+std::vector<std::string> splitString(const std::string& str, char delimiter) {
+    std::vector<std::string> tokens;
+    std::string token;
+    std::istringstream tokenStream(str);
+
+    while (getline(tokenStream, token, delimiter)) {
+        tokens.push_back(token);
+    }
+
+    return tokens;
+}

@@ -11,10 +11,13 @@
 #include <iostream>
 #include <vector>
 #include <queue>
+#include <string>
+#include <sstream>
 
 #include "Client.hpp"
 
 int setNonBlocking(int fd);
 Client *getClientByNick(std::vector<Client*>* clients, std::string nick);
+std::vector<std::string> splitString(const std::string& str, char delimiter);
 
 #endif

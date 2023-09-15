@@ -34,6 +34,7 @@ class Channel {
     bool removeUser(Client* user);
     void addUser(Client *client, bool isOperator);
     void sendMsg(Client* client, const std::vector<std::string>& args, std::queue<message> *messageQueue);
+    void broadcast(std::string msg, std::queue<message> *messageQueue);
     
     std::string getKey();
 

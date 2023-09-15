@@ -102,3 +102,45 @@ Channel *ChannelHandler::getChannelByKey(std::string key) {
     return NULL;
 }
 
+void ChannelHandler::handleLeave(Client* client, const std::vector<std::string>& channelsToLeave, std::queue<message> *messageQueue) {
+
+    std::vector<Channel*> channels;
+
+    for (size_t i = 0; i < channelsToLeave.size(); i++) {
+
+        Channel* channel = this->getChannelByKey(channelsToLeave[i]);
+        if (channel == NULL) {
+            std::string response = ResponseBuilder("ircserv").addCommand("403").addParameters(channelsToLeave[i]).addTrailing("No such channel").build();
+            messageQueue->push(std::make_pair(client->getFD(), response));
+            return;
+        }
+        channels.push_back(channel);
+    }
+
+    std::vector<std::pair<ChannelUser*, Channel*> > channelUsers;
+
+    for (size_t i = 0; i < channels.size(); i++) {
+        Channel* channel = channels[i];
+        ChannelUser* channelUser = channel->getChannelUser(client);
+        if (channelUser == NULL) {
+            std::string response = ResponseBuilder("ircserv").addCommand("442").addParameters(channelsToLeave[i]).addTrailing("You're not on that channel").build();
+            messageQueue->push(std::make_pair(client->getFD(), response));
+            return;
+        }
+        channelUsers.push_back(std::make_pair(channelUser, channel));
+    }
+
+    for (size_t i = 0; i < channelUsers.size(); i++) {
+        ChannelUser* channelUser = channelUsers[i].first;
+        Channel* channel = channelUsers[i].second;
+        std::string formattedClient = client->getNick() + "!" + client->getUsername() + "@" + client->getHostname();
+        // :Nick!User@Host PART #channelname :OptionalPartMessage
+        std::string response = ResponseBuilder(formattedClient).addCommand("PART").addParameters(channelsToLeave[i]).build();
+        // .addTrailing("Has left the channel bithchhh").build();
+
+        channel->broadcast(response, messageQueue);
+        channel->removeUser(channelUser->client);
+    }
+
+}
+
