@@ -52,6 +52,11 @@ void Client::setHostname(const std::string& hostname) {
     this->hostname = hostname;
 }
 
+
+bool Client::getIsRegistered() const {
+    return this->isRegistered;
+}
+
 // validation
 bool Client::isValidNickname(const std::string& nick) {
     if (nick.empty()) return false;

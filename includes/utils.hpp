@@ -12,6 +12,9 @@
 #include <vector>
 #include <queue>
 
+#include "Client.hpp"
+
 int setNonBlocking(int fd);
+Client *getClientByUsername(std::vector<Client*>* clients, std::string name);
 
 #endif

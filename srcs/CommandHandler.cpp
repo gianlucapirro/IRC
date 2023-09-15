@@ -63,6 +63,8 @@ void CommandHandler::handleCommand(Client *client, const std::string& command, c
         this->channelHandler.join(client, args, this->messageQueue);
     } else if (command == "PRIVMSG") {
         handlePrivMsg(client, args);
+    } else if (command == "KICK") {
+        handleKick(client, args);
     }
 
 }
@@ -153,7 +155,7 @@ void CommandHandler::handleUser(Client *client, const std::vector<std::string>& 
 }
 
 void CommandHandler::handlePrivMsg(Client *client, const std::vector<std::string>& args) {
-    if (!client->getIsAuthenticated()) {
+    if (!client->getIsRegistered()) {
         std::string response = ResponseBuilder("ircserv").addCommand("451").addTrailing("You have not registered").build();
         this->messageQueue->push(std::make_pair(client->getFD(), response));
         return;
@@ -163,9 +165,28 @@ void CommandHandler::handlePrivMsg(Client *client, const std::vector<std::string
     if (channelOrUser[0] == '#') {
         this->channelHandler.handleMsg(client, args, this->messageQueue);
     }
-
 }
 
+void CommandHandler::handleKick(Client *client, const std::vector<std::string>& args) {
+    if (!client->getIsRegistered()) {
+        std::string response = ResponseBuilder("ircserv").addCommand("451").addTrailing("You have not registered").build();
+        this->messageQueue->push(std::make_pair(client->getFD(), response));
+        return;
+    }
+
+    std::vector<std::string> channelsToKick;
+    std::vector<std::string> clientsToKick;
+
+    int i;
+    for (i = 0; i < args.size() && args[i][0] == '#'; i++) {
+        channelsToKick.push_back(args[i]);
+    }
+    for (; i < args.size(); i++) {
+        clientsToKick.push_back(args[i]);
+    }
+
+    this->channelHandler.handleKick(client, channelsToKick, clientsToKick, this->clients, this->messageQueue);
+}
 
 
 Client* CommandHandler::searchClient(int clientFD) {

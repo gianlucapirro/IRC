@@ -15,6 +15,7 @@
 
 #include "Channel.hpp"
 #include "ResponseBuilder.hpp"
+#include "utils.hpp"
 
 #define RPL_TOPIC "332"
 #define RPL_NAMREPLY "353"
@@ -33,6 +34,7 @@ class ChannelHandler {
     ChannelHandler();
     void join(Client *client, const std::vector<std::string>& args, std::queue<message> *messageQueue);
     void handleMsg(Client* client, const std::vector<std::string>& args, std::queue<message> *messageQueue);
+    void handleKick(Client* client, const std::vector<std::string>& channelsToKick, const std::vector<std::string>& clientsToKick, std::vector<Client*> *clients, std::queue<message> *messageQueue);
 };
 
 #endif

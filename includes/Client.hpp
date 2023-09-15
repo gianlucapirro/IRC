@@ -35,6 +35,7 @@ class Client {
 	
     void setIsAuthenticated(bool isAuthenticated);
 	bool canBeRegistered() const;
+    bool getIsRegistered() const;
 
     bool isValidNickname(const std::string& nick);
     bool isValidUsername(const std::string& user);
