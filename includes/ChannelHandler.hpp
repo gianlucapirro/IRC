@@ -34,7 +34,7 @@ class ChannelHandler {
     ChannelHandler();
     void join(Client *client, const std::vector<std::string>& args, std::queue<message> *messageQueue);
     void handleMsg(Client* client, const std::vector<std::string>& args, std::queue<message> *messageQueue);
-    void handleKick(Client* client, const std::vector<std::string>& channelsToKick, const std::vector<std::string>& clientsToKick, std::vector<Client*> *clients, std::queue<message> *messageQueue);
+    void handleKick(Client* client, const std::vector<std::string>& channelsToKick, const std::vector<std::string>& clientsToKick, std::vector<Client*> *clients, std::queue<message> *messageQueue, std::string reason);
 };
 
 #endif

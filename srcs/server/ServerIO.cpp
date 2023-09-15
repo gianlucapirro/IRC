@@ -9,7 +9,12 @@ void Server::sendMessage(int clientFD, const std::string& message) {
 void Server::handleBuffer(std::vector<std::string> commands, Client* client) {
     std::vector<parsedCommand> parsedCommands = this->commandHandler.parseCommands(commands);
     for (std::vector<parsedCommand>::iterator it = parsedCommands.begin(); it != parsedCommands.end(); ++it) {
-        this->commandHandler.handleCommand(client, it->first, it->second);
+        int action = this->commandHandler.handleCommand(client, it->first, it->second);
+        switch (action) {
+            case QUIT_USER:
+                this->deleteClient(client);
+                return;
+        }
     }
 }
 
@@ -32,13 +37,29 @@ void Server::handleClient(size_t i) {
 	// std::cout << buffer << std::endl;
 
     if (valread <= 0) {
-        close(this->fds[i].fd);
-        this->fds.erase(this->fds.begin() + i);
-        this->clients.erase(this->clients.begin() + i);
-        delete client;
+        deleteClient(client);
     } else {
         std::vector<std::string> commands;
         client->handleIncomingData(buffer, valread, commands);
         this->handleBuffer(commands, client);
     }
+}
+
+
+void Server::deleteClient(Client* client) {
+    int clientIndex = -1;
+    size_t i = 0;
+    for (; i < this->clients.size(); i++) {
+        if ((this->clients)[i]->getFD() == client->getFD()) {
+            clientIndex = i;
+            break;
+        }
+    }
+    if (clientIndex == -1)
+        throw std::runtime_error("Trying to delete a client that was no longer in the clients list");
+
+    close((this->fds)[clientIndex].fd);
+    this->fds.erase(this->fds.begin() + clientIndex);
+    this->clients.erase(this->clients.begin() + clientIndex);
+    delete client;
 }

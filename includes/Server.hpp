@@ -15,6 +15,7 @@
 #include "Client.hpp"
 #include "CommandHandler.hpp"
 #include "Config.hpp"
+#include "utils.hpp"
 
 
 class Server {
@@ -39,6 +40,7 @@ class Server {
     void acceptNewConnection();
     void createClient(int newSocket);
     void handleClient(size_t i);
+    void deleteClient(Client* client);
 
    public:
     Server(const Config& config);

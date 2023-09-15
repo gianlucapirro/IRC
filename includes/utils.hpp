@@ -15,6 +15,6 @@
 #include "Client.hpp"
 
 int setNonBlocking(int fd);
-Client *getClientByUsername(std::vector<Client*>* clients, std::string name);
+Client *getClientByNick(std::vector<Client*>* clients, std::string nick);
 
 #endif

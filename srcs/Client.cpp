@@ -2,7 +2,7 @@
 
 #include "Server.hpp"
 
-Client::Client(int fd) : fd(fd), isAuthenticated(false), username("") {
+Client::Client(int fd) : fd(fd), isAuthenticated(false), isRegistered(false), username("") {
     this->nick = "";
 }
 

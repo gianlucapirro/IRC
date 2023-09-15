@@ -8,10 +8,10 @@ int setNonBlocking(int fd) {
 }
 
 
-Client *getClientByUsername(std::vector<Client*>* clients, std::string name) {
+Client *getClientByNick(std::vector<Client*>* clients, std::string nick) {
     for (size_t i = 0; i < clients->size(); i++) {
         Client* client = (*clients)[i];
-        if (client->getUsername() == name) {
+        if (client->getNick() == nick) {
             return client;
         }
     }

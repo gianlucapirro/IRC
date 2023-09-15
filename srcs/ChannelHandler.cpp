@@ -44,9 +44,16 @@ void ChannelHandler::handleMsg(Client* client, const std::vector<std::string>& a
     }
 }
 
-void ChannelHandler::handleKick(Client* client, const std::vector<std::string>& channelsToKick, const std::vector<std::string>& clientsToKick, std::vector<Client*> *clients, std::queue<message> *messageQueue) {
+void ChannelHandler::handleKick(
+    Client* client,
+    const std::vector<std::string>& channelsToKick,
+    const std::vector<std::string>& clientsToKick,
+    std::vector<Client*> *clients,
+    std::queue<message> *messageQueue,
+    std::string reason
+) {
     std::vector<Channel*> foundChannels;
-    for (int i = 0; i < channelsToKick.size(); i++) {
+    for (size_t i = 0; i < channelsToKick.size(); i++) {
         Channel* foundChannel = this->getChannelByKey(channelsToKick[i]);
         if (foundChannel == NULL) {
             std::string response = ResponseBuilder("ircserv").addCommand("403").addParameters(channelsToKick[i]).addTrailing("No such channel").build();
@@ -56,31 +63,19 @@ void ChannelHandler::handleKick(Client* client, const std::vector<std::string>& 
         foundChannels.push_back(foundChannel);
     }
 
-    for (int i = 0; i < foundChannels.size(); i++) {
-        ChannelUser* channelUser = foundChannels[i]->getChannelUser(client);
-        if (channelUser == NULL) {
-            std::string response = ResponseBuilder("ircserv").addCommand("442").addParameters(channelsToKick[i]).addTrailing("You're not on that channel").build();
-            messageQueue->push(std::make_pair(client->getFD(), response));
-            return;
-        }
-        if (!channelUser->isOperator) {
-            std::string response = ResponseBuilder("ircserv").addCommand("482").addParameters(channelsToKick[i]).addTrailing("You're not channel operator").build();
-            messageQueue->push(std::make_pair(client->getFD(), response));
-            return;
-        }
-    }
-
     std::vector<Client*> foundClients;
-    for (int i = 0; i < clientsToKick.size(); i++) {
-        Client* foundClient = getClientByUsername(clients, clientsToKick[i]);
+    for (size_t i = 0; i < clientsToKick.size(); i++) {
+        Client* foundClient = getClientByNick(clients, clientsToKick[i]);
         if (foundClient != NULL) {
             foundClients.push_back(foundClient);
         }
     }
 
-    for (int i = 0; i < foundChannels.size(); i++) {
-        for (int p = 0; p < foundClients.size(); p++) {
+    for (size_t i = 0; i < foundChannels.size(); i++) {
+        for (size_t p = 0; p < foundClients.size(); p++) {
             foundChannels[i]->removeUser(foundClients[p]);
+            std::string response = ResponseBuilder("ircserv").addCommand("KICK").addParameters(foundChannels[i]->getKey() + " " + foundClients[p]->getNick()).addTrailing(reason).build();
+            messageQueue->push(std::make_pair(foundClients[p]->getFD(), response));
         }
     }
 }

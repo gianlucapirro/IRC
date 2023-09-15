@@ -30,9 +30,6 @@ std::vector<parsedCommand> CommandHandler::parseCommands(std::vector<std::string
     for (size_t i = 0; i < commands.size(); i++) {
         command = commands[i];
 
-        // Remove the line ending
-        // command.erase(command.size() - 1);
-
         // remove carriage return character at the end if it exists
         if (!command.empty() && command[command.size() - 1] == '\r') {
             command.erase(command.size() - 1);
@@ -44,14 +41,14 @@ std::vector<parsedCommand> CommandHandler::parseCommands(std::vector<std::string
     return parsedCommands;
 }
 
-void CommandHandler::handleCommand(Client *client, const std::string& command, const std::vector<std::string>& args) {
+int CommandHandler::handleCommand(Client *client, const std::string& command, const std::vector<std::string>& args) {
 
     if (args.empty()) {
         std::string response =
             ResponseBuilder("ircserv").addCommand("461").addTrailing("Not enough parameters").build();
 
         this->messageQueue->push(std::make_pair(client->getFD(), response));
-        return;
+        return NO_ACTION;
     }
     if (command == "PASS") {
         handlePass(client, args);
@@ -65,8 +62,10 @@ void CommandHandler::handleCommand(Client *client, const std::string& command, c
         handlePrivMsg(client, args);
     } else if (command == "KICK") {
         handleKick(client, args);
+    } else if (command == "QUIT") {
+        return QUIT_USER;
     }
-
+    return NO_ACTION;
 }
 
 void CommandHandler::handleCap(Client *client, const std::vector<std::string>& args) {
@@ -176,16 +175,21 @@ void CommandHandler::handleKick(Client *client, const std::vector<std::string>& 
 
     std::vector<std::string> channelsToKick;
     std::vector<std::string> clientsToKick;
+    std::string reason = "You have been kicked";
 
-    int i;
+    size_t i;
     for (i = 0; i < args.size() && args[i][0] == '#'; i++) {
         channelsToKick.push_back(args[i]);
     }
-    for (; i < args.size(); i++) {
+    for (; i < args.size() && args[i] != ":"; i++) {
         clientsToKick.push_back(args[i]);
     }
+    if (i + 1 < args.size() && args[i+1] != ":") {
+        reason = args[i+1];
+    }
 
-    this->channelHandler.handleKick(client, channelsToKick, clientsToKick, this->clients, this->messageQueue);
+
+    this->channelHandler.handleKick(client, channelsToKick, clientsToKick, this->clients, this->messageQueue, reason);
 }
 
 
