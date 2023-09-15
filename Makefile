@@ -65,7 +65,7 @@ irssi:
 	docker-compose exec irc_server irssi
 
 irs:
-	{ echo "/connect localhost 1234 pass"; cat; } | irssi 
+	expect start_irs.exp
 
 nc:
 	nc localhost 1234

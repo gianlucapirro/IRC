@@ -1,0 +1,10 @@
+#!/usr/bin/expect -f
+
+spawn irssi
+
+
+# Send the initial input followed by a newline
+send "/connect localhost 1234 pass"
+
+# Pass control to the user
+interact
