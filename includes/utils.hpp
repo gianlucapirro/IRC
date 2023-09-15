@@ -15,6 +15,7 @@
 #include "Client.hpp"
 
 int setNonBlocking(int fd);
+void sendPrivateMessage(Client *client, std::vector<Client*> *clients, const std::vector<std::string>& args, std::queue<message>* messageQueue);
 Client *getClientByNick(std::vector<Client*>* clients, std::string nick);
 
 #endif

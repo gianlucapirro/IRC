@@ -1,4 +1,5 @@
 #include "CommandHandler.hpp"
+#include "utils.hpp"
 
 CommandHandler::CommandHandler(std::queue<message>* messages, const Config* config, std::vector<Client*>* clients) {
     this->channelHandler = ChannelHandler();
@@ -163,7 +164,9 @@ void CommandHandler::handlePrivMsg(Client *client, const std::vector<std::string
     std::string channelOrUser = args[0];
     if (channelOrUser[0] == '#') {
         this->channelHandler.handleMsg(client, args, this->messageQueue);
-    }
+    } else {
+		sendPrivateMessage(client, this->clients, args, this->messageQueue);
+	}
 }
 
 void CommandHandler::handleKick(Client *client, const std::vector<std::string>& args) {
