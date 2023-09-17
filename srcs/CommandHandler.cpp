@@ -2,7 +2,7 @@
 #include "utils.hpp"
 
 CommandHandler::CommandHandler(std::queue<message>* messages, const Config* config, std::vector<Client*>* clients) {
-    this->channelHandler = ChannelHandler();
+    this->channelHandler = ChannelHandler(messages, clients);
     this->messageQueue = messages;
     this->config = config;
     this->clients = clients;
@@ -51,24 +51,56 @@ int CommandHandler::handleCommand(Client *client, const std::string& command, co
         this->messageQueue->push(std::make_pair(client->getFD(), response));
         return NO_ACTION;
     }
+    // Check commands that require no authentication
+
     if (command == "PASS") {
         handlePass(client, args);
+        return NO_ACTION;
     } else if (command == "NICK") {
         handleNick(client, args);
+        return NO_ACTION;
     } else if (command == "USER") {
         handleUser(client, args);
+        return NO_ACTION;
+    } else if (command == "QUIT") {
+        return QUIT_USER;
+    } else if (command == "CAP") {
+        handleCap(client, args);
+        return NO_ACTION;
+    }
+
+    // Check registration
+    if (!client->getIsRegistered()) {
+        std::string response = ResponseBuilder("ircserv").addCommand("451").addParameters("").addTrailing("You have not registered").build();
+        this->messageQueue->push(std::make_pair(client->getFD(), response));
+        return NO_ACTION;
     } else if (command == "JOIN") {
-        this->channelHandler.join(client, args, this->messageQueue);
+        handleJoin(client, args);
     } else if (command == "PRIVMSG") {
         handlePrivMsg(client, args);
     } else if (command == "KICK") {
         handleKick(client, args);
-    } else if (command == "QUIT") {
-        return QUIT_USER;
     } else if (command == "PART") {
         handleLeave(client, args);
     }
     return NO_ACTION;
+}
+
+void CommandHandler::handleMode(Client* client, const std::vector<std::string>& args) {
+    this->channelHandler.handleMode(client, args, this->messageQueue);
+}
+
+void CommandHandler::handleJoin(Client *client, const std::vector<std::string>& args) {
+    this->channelHandler.join(client, args, this->messageQueue);
+}
+
+void CommandHandler::handleCap(Client *client, const std::vector<std::string>& args) {
+    if (args[0] == "LS") {
+        std::string capabilities = "";
+        std::string response =
+            ResponseBuilder("ircserv").addCommand("CAP").addParameters("* LS :" + capabilities).build();
+        this->messageQueue->push(std::make_pair(client->getFD(), response));
+    }
 }
 
 void CommandHandler::handleCap(Client *client, const std::vector<std::string>& args) {
@@ -91,12 +123,6 @@ void CommandHandler::handlePass(Client *client, const std::vector<std::string>& 
 }
 
 void CommandHandler::handleNick(Client *client, const std::vector<std::string>& args) {
-    if (!client->getIsAuthenticated()) {
-        std::string response =
-            ResponseBuilder("ircserv").addCommand("451").addParameters("").addTrailing("You have not registered").build();
-        this->messageQueue->push(std::make_pair(client->getFD(), response));
-        return;
-    }
 
     if (!client->isValidNickname(args[0])) {
         std::string response = ResponseBuilder("ircserv")
@@ -157,12 +183,6 @@ void CommandHandler::handleUser(Client *client, const std::vector<std::string>& 
 }
 
 void CommandHandler::handlePrivMsg(Client *client, const std::vector<std::string>& args) {
-    if (!client->getIsRegistered()) {
-        std::string response = ResponseBuilder("ircserv").addCommand("451").addTrailing("You have not registered").build();
-        this->messageQueue->push(std::make_pair(client->getFD(), response));
-        return;
-    }
-
     std::string channelOrUser = args[0];
     if (channelOrUser[0] == '#') {
         this->channelHandler.handleMsg(client, args, this->messageQueue);
@@ -172,12 +192,6 @@ void CommandHandler::handlePrivMsg(Client *client, const std::vector<std::string
 }
 
 void CommandHandler::handleKick(Client *client, const std::vector<std::string>& args) {
-    if (!client->getIsRegistered()) {
-        std::string response = ResponseBuilder("ircserv").addCommand("451").addTrailing("You have not registered").build();
-        this->messageQueue->push(std::make_pair(client->getFD(), response));
-        return;
-    }
-
     std::vector<std::string> channelsToKick;
     std::vector<std::string> clientsToKick;
     std::string reason = "You have been kicked";
@@ -198,11 +212,6 @@ void CommandHandler::handleKick(Client *client, const std::vector<std::string>& 
 }
 
 void CommandHandler::handleLeave(Client* client, const std::vector<std::string>& args) {
-    if (!client->getIsRegistered()) {
-        std::string response = ResponseBuilder("ircserv").addCommand("451").addTrailing("You have not registered").build();
-        this->messageQueue->push(std::make_pair(client->getFD(), response));
-        return;
-    }
     if (args.size() < 1) {
         std::string response = ResponseBuilder("ircserv").addCommand("461").addTrailing("Need more parameters").build();
         this->messageQueue->push(std::make_pair(client->getFD(), response));
@@ -230,11 +239,3 @@ bool CommandHandler::isNicknameInUse(const std::string& nickname) const {
     }
     return false;
 }
-
-// void CommandHandler::handleBuffer(char* buffer, int valread, int fd) {
-//     buffer[valread] = '\0';
-//     std::vector<parsedCommand> parsedCommands = this->parseCommands(buffer);
-//     for (std::vector<parsedCommand>::iterator it = parsedCommands.begin(); it != parsedCommands.end(); ++it) {
-//         this->handleCommand(fd, it->first, it->second);
-//     }
-// }

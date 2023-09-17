@@ -5,6 +5,7 @@ WORKDIR /app
 
 RUN apt-get update && \
     apt-get install -y build-essential valgrind irssi netcat
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y expect
 
 COPY . /app
 

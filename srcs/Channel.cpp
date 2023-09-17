@@ -67,3 +67,16 @@ void Channel::broadcast(std::string msg, std::queue<message> *messageQueue) {
         messageQueue->push(std::make_pair(user->client->getFD(), msg));
     }
 }
+
+std::string Channel::getNicknames() {
+    std::string names = "";
+    if (this->channelUsers.size() == 0)
+        return names;
+    for (size_t i = 0; i < this->channelUsers.size(); i++) {
+        ChannelUser* channelUser = this->channelUsers[i];
+        names += channelUser->client->getNick();
+        if (i != this->channelUsers.size() - 1)
+            names += " ";
+    }
+    return names;
+}

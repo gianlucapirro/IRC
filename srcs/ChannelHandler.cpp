@@ -1,11 +1,18 @@
 
 #include "ChannelHandler.hpp"
 
-ChannelHandler::ChannelHandler() {
-
+ChannelHandler::ChannelHandler(std::queue<message>* messageQueue, std::vector<Client*> *clients) {
+    this->messageQueue = messageQueue;
+    this->clients = clients;
 }
 
 void ChannelHandler::join(Client* client, const std::vector<std::string>& args, std::queue<message> *messageQueue) {
+    if (!client->getIsAuthenticated()) {
+        std::string response =
+            ResponseBuilder("ircserv").addCommand("451").addParameters("").addTrailing("You have not registered").build();
+        messageQueue->push(std::make_pair(client->getFD(), response));
+        return;
+    }
     // TODO: check the name on wrong characters
     Channel *currentChannel = this->getChannelByClient(client);
     if (currentChannel) {
@@ -16,9 +23,16 @@ void ChannelHandler::join(Client* client, const std::vector<std::string>& args, 
     if (channel == NULL) {
         Channel *newChannel = new Channel(client, args[0]);
         this->channels.push_back(newChannel);
+        channel = newChannel;
     } else {
         channel->addUser(client, false);
     }
+
+    std::string joinResponse = ResponseBuilder(client->getNick()
+        ).addCommand("JOIN"
+        ).addTrailing(channel->getKey()
+        ).build();
+    channel->broadcast(joinResponse, messageQueue);
 
     std::string topicResponse = ResponseBuilder("ircserv"
         ).addCommand(RPL_NOTOPIC
@@ -27,9 +41,12 @@ void ChannelHandler::join(Client* client, const std::vector<std::string>& args, 
 
     messageQueue->push(std::make_pair(client->getFD(), topicResponse));
 
+    std::string names = channel->getNicknames();
+
     std::string namesResponse = ResponseBuilder("ircserv"
         ).addCommand(RPL_NAMREPLY 
-        ).addTrailing("names"
+        ).addParameters(channel->getKey()
+        ).addTrailing(names
         ).build();
     // TODO: put real users here
 
@@ -133,10 +150,9 @@ void ChannelHandler::handleLeave(Client* client, const std::vector<std::string>&
     for (size_t i = 0; i < channelUsers.size(); i++) {
         ChannelUser* channelUser = channelUsers[i].first;
         Channel* channel = channelUsers[i].second;
-        std::string formattedClient = client->getNick() + "!" + client->getUsername() + "@" + client->getHostname();
+        std::string formattedClient = client->getNick();
         // :Nick!User@Host PART #channelname :OptionalPartMessage
-        std::string response = ResponseBuilder(formattedClient).addCommand("PART").addParameters(channelsToLeave[i]).build();
-        // .addTrailing("Has left the channel bithchhh").build();
+        std::string response = ResponseBuilder(formattedClient).addCommand("PART").addParameters(channelsToLeave[i]).addTrailing("").build();
 
         channel->broadcast(response, messageQueue);
         channel->removeUser(channelUser->client);

@@ -43,6 +43,9 @@ class CommandHandler {
     void handlePrivMsg(Client *client, const std::vector<std::string>& args);
     void handleKick(Client *client, const std::vector<std::string>& args);
     void handleLeave(Client* client, const std::vector<std::string>& args);
+    void handleJoin(Client *client, const std::vector<std::string>& args);
+    void handleMode(Client* client, const std::vector<std::string>& args);
+
     Client* searchClient(int clientFD);
     bool isNicknameInUse(const std::string& nickname) const;
 };
