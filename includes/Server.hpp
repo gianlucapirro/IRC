@@ -12,6 +12,7 @@
 #include <vector>
 #include <queue>
 
+#include "response.hpp"
 #include "Client.hpp"
 #include "CommandHandler.hpp"
 #include "Config.hpp"

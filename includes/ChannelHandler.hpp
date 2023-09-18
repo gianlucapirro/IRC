@@ -14,6 +14,7 @@
 #include <vector>
 #include <queue>
 
+#include "response.hpp"
 #include "Channel.hpp"
 #include "ResponseBuilder.hpp"
 #include "utils.hpp"

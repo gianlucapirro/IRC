@@ -8,9 +8,7 @@ ChannelHandler::ChannelHandler(std::queue<message>* messageQueue, std::vector<Cl
 
 void ChannelHandler::join(Client* client, const std::vector<std::string>& args, std::queue<message> *messageQueue) {
     if (!client->getIsAuthenticated()) {
-        std::string response =
-            ResponseBuilder("ircserv").addCommand("451").addParameters("").addTrailing("You have not registered").build();
-        messageQueue->push(std::make_pair(client->getFD(), response));
+        respond(client->getFD(), AERR_NOTREGISTERED(client->getNick()));
         return;
     }
     // TODO: check the name on wrong characters
@@ -21,60 +19,28 @@ void ChannelHandler::join(Client* client, const std::vector<std::string>& args, 
         this->channels.push_back(newChannel);
         channel = newChannel;
     } else if (channel->getLimit() != 0 && channel->getLimit() <= channel->getUserCount()) {
-        std::string response = ResponseBuilder("ircserv"
-            ).addCommand(ERR_CHANNELISFULL
-            ).addParameters(client->getNick() + " " + channel->getKey()
-            ).addTrailing("Channel is at max capacity"
-            ).build();
-        messageQueue->push(std::make_pair(client->getFD(), response));
+        respond(client->getFD(), AERR_CHANNELISFULL(client->getNick(), channel->getKey()));
         return;
     } else if (channel->getPass() != "" && (args.size() < 2 || args[1] != channel->getPass())) {
-        std::string response = ResponseBuilder("ircserv"
-            ).addCommand(ERR_BADCHANNELKEY
-            ).addParameters(client->getNick() + " " + channel->getKey()
-            ).addTrailing("Channel password is incorrect"
-            ).build();
-        messageQueue->push(std::make_pair(client->getFD(), response));
+        respond(client->getFD(), AERR_BADCHANNELKEY(client->getNick(), channel->getKey()));
         return;
     } else if (channel->getIsInviteOnly() && !channel->isInvited(client->getNick())) {
-        std::string response = ResponseBuilder("ircserv"
-            ).addCommand(ERR_INVITEONLYCHAN
-            ).addParameters(client->getNick() + " " + channel->getKey()
-            ).addTrailing("You are not invited to this channel"
-            ).build();
-        messageQueue->push(std::make_pair(client->getFD(), response));
+        respond(client->getFD(), AERR_INVITEONLYCHAN(client->getNick(), channel->getKey()));
+        return;
+    } else if (channel->getChannelUser(client) != NULL) {
         return;
     } else {
-        if (channel->getChannelUser(client) == NULL)
-            channel->addUser(client, false);
-        else
-            return;
+        channel->addUser(client, false);
     }
 
-    std::string joinResponse = ResponseBuilder(client->getNick()
-        ).addCommand("JOIN"
-        ).addTrailing(channel->getKey()
-        ).build();
-    channel->broadcast(joinResponse, messageQueue);
+    channel->broadcast(ARPL_JOIN(client->getNick(), channel->getKey()), messageQueue);
 
-    std::string topicResponse = ResponseBuilder("ircserv"
-        ).addCommand(RPL_NOTOPIC
-        ).addTrailing("No topic is set"
-        ).build();
-
-    messageQueue->push(std::make_pair(client->getFD(), topicResponse));
+    // TODO: add topic if it exists
+    respond(client->getFD(), ARPL_NOTOPIC(client->getNick(), channel->getKey()));
 
     std::string names = channel->getNicknames();
-
-    std::string namesResponse = ResponseBuilder("ircserv"
-        ).addCommand(RPL_NAMREPLY 
-        ).addParameters(channel->getKey()
-        ).addTrailing(names
-        ).build();
-    // TODO: put real users here
-
-    messageQueue->push(std::make_pair(client->getFD(), namesResponse));
-
+    respond(client->getFD(), ARPL_NAMREPLY(client->getNick(), channel->getKey(), names));
+    respond(client->getFD(), ARPL_ENDOFNAMES(client->getNick(), channel->getKey()));
 }
 
 void ChannelHandler::handleMsg(Client* client, const std::vector<std::string>& args, std::queue<message> *messageQueue) {

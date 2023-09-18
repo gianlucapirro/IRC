@@ -19,6 +19,7 @@ SRC = Main.cpp \
       ServerAccessors.cpp \
       CommandHandler.cpp \
       ResponseBuilder.cpp \
+	  responses.cpp \
       ChannelHandler.cpp \
       Channel.cpp \
       Client.cpp \

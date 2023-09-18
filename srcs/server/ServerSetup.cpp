@@ -1,5 +1,4 @@
 #include "Server.hpp"
-#include "utils.hpp"
 
 Server::Server(const Config& config) : config(config), commandHandler(&this->messages, &config, &(this->clients)) {
     setupServer();
@@ -13,6 +12,7 @@ void Server::setupServer() {
         configureAddress();
         bindSocket();
         setListenMode();
+        respondSetQueue(&this->messages);
 
         this->fds.resize(1);
         this->fds[0].fd = this->serverFD;
