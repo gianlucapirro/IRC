@@ -57,3 +57,12 @@ void sendPrivateMessage(Client *client, std::vector<Client*> *clients, const std
         }
     }
 }
+
+void removeStrFromVec(std::vector<std::string>& vec, std::string str) {
+    for (size_t i = 0; i < vec.size(); i++) {
+        if (vec[i] == str) {
+            vec.erase(vec.begin() + i);
+            return;
+        }
+    }
+}

@@ -108,6 +108,14 @@ std::vector<ModeChange> ChannelHandler::modeParseArgsOrRespond(Client *client, c
     return changes;
 }
 
+bool ChannelHandler::modeSetInviteOnly(Client* client, ModeChange change) {
+    std::string flag = change.operation == PLUS ? " +i" : " -i";
+    std::string resp = ResponseBuilder(client->getNick()).addCommand("MODE").addParameters(change.channel->getKey() + flag).build();
+    change.channel->setInviteOnly(change.operation == PLUS ? true : false);
+    change.channel->broadcast(resp, this->messageQueue);
+    return true;
+}
+
 bool ChannelHandler::modeSetPass(Client* client, ModeChange change) {
     if (change.operation == MINUS) {
         std::string resp = ResponseBuilder(client->getNick()
@@ -231,6 +239,8 @@ void ChannelHandler::handleMode(Client* client, const std::vector<std::string>& 
             this->modeSetLimit(client, changes[i]);
         } else if (changes[i].mode == 'k') {
             this->modeSetPass(client, changes[i]);
+        } else if (changes[i].mode == 'i') {
+            this->modeSetInviteOnly(client, changes[i]);
         } else if (changes[i].mode == 't') {
             this->modeSetTopic(client, changes[i]);
         }

@@ -46,6 +46,7 @@ class ChannelHandler {
     bool modeSetLimit(Client* client, ModeChange change);
     bool modeSetPass(Client* client, ModeChange change);
     bool modeSetTopic(Client* client, ModeChange change);
+    bool modeSetInviteOnly(Client* client, ModeChange change);
 
    public:
     ChannelHandler(std::queue<message>* messageQueue, std::vector<Client*> *clients);

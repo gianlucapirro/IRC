@@ -36,6 +36,14 @@ void ChannelHandler::join(Client* client, const std::vector<std::string>& args, 
             ).build();
         messageQueue->push(std::make_pair(client->getFD(), response));
         return;
+    } else if (channel->getIsInviteOnly() && !channel->isInvited(client->getNick())) {
+        std::string response = ResponseBuilder("ircserv"
+            ).addCommand(ERR_INVITEONLYCHAN
+            ).addParameters(client->getNick() + " " + channel->getKey()
+            ).addTrailing("You are not invited to this channel"
+            ).build();
+        messageQueue->push(std::make_pair(client->getFD(), response));
+        return;
     } else {
         if (channel->getChannelUser(client) == NULL)
             channel->addUser(client, false);
@@ -298,7 +306,5 @@ void ChannelHandler::handleInvite(Client* client, const std::vector<std::string>
         ).addTrailing(channel->getKey()
         ).build();
     messageQueue->push(std::make_pair(invitedClient->getFD(), inviteeResponse));
-
+    channel->addInvite(invitedClient->getNick());
 }
-
-void Chann

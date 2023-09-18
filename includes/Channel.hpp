@@ -13,6 +13,7 @@
 #include <vector>
 #include <queue>
 
+#include "utils.hpp"
 #include "Client.hpp"
 #include "ResponseBuilder.hpp"
 
@@ -31,6 +32,7 @@ class Channel {
     std::string pass;
     std::string topic;
     bool canChangeTopic;
+    bool isInviteOnly;
     std::vector<std::string> invites;
     
    public:
@@ -54,6 +56,8 @@ class Channel {
     bool setCanChangeTopic(bool canChangeTopic);
     void addInvite(std::string nickname);
     bool isInvited(std::string nickname);
+    bool getIsInviteOnly();
+    bool setInviteOnly(bool isInviteOnly);
 
 
 };

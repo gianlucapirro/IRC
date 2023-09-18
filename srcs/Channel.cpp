@@ -2,7 +2,7 @@
 
 #include "Channel.hpp"
 
-Channel::Channel(Client *creator, std::string key) : key(key), limit(0), pass(""), topic(""), canChangeTopic(false) {
+Channel::Channel(Client *creator, std::string key) : key(key), limit(0), pass(""), topic(""), canChangeTopic(false), isInviteOnly(false) {
     this->addUser(creator, true);
 }
 
@@ -38,6 +38,7 @@ void Channel::addUser(Client *client, bool isOperator) {
     channelUser->isOperator = isOperator;
     channelUser->client = client;
     this->channelUsers.push_back(channelUser);
+    removeStrFromVec(this->invites, client->getNick());
 }
 
 void Channel::sendMsg(Client* client, const std::vector<std::string>& args, std::queue<message> *messageQueue) {
@@ -119,4 +120,26 @@ bool Channel::getCanChangeTopic() {
 bool Channel::setCanChangeTopic(bool canChangeTopic) {
     this->canChangeTopic = canChangeTopic;
     return this->canChangeTopic;
+}
+
+void Channel::addInvite(std::string nickname) {
+    this->invites.push_back(nickname);
+}
+
+bool Channel::isInvited(std::string nickname) {
+    for (size_t i = 0; i < this->invites.size(); i++) {
+        if (this->invites[i] == nickname) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Channel::getIsInviteOnly() {
+    return this->isInviteOnly;
+}
+
+bool Channel::setInviteOnly(bool isInviteOnly) {
+    this->isInviteOnly = isInviteOnly;
+    return this->isInviteOnly;
 }
