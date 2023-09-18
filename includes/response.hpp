@@ -22,6 +22,9 @@
 #define AERR_CHANOPRIVSNEEDED(client, channel)           ":ircserv 482 " + client + " " + channel + " :You're not channel operator\r\n"
 #define AERR_NOSUCHNICK(client, nickname)                ":ircserv 401 " + client + " " + nickname + " :No such nick/channel\r\n"
 #define AERR_USERNOTINCHANNEL(client, nickname, channel) ":ircserv 441 " + client + " " + nickname + " " + channel + " :They aren't on that channel\r\n"
+#define AERR_USERONCHANNEL(client, nickname, channel)    ":ircserv 443 " + client + " " + nickname + " " + channel + " :is already on channel\r\n"
+
+
 #define AERR_INVITEONLYCHAN(client, channel)   ":ircserv 473 " + client + " " + channel + " :You are not invited to this channel\r\n"
 
 
@@ -39,6 +42,7 @@
 #define ARPL_KICK(client, channel, target, reason)       ":" + client + " KICK " + channel + " " + target + " :" + reason
 #define ARPL_MODE(client, channel, modes, args)          ":" + client + " MODE " + channel + " " + modes + " " + args
 #define ARPL_NOTOPIC(client, channel)                    ":ircserv 331 " + client + " " + channel + ": No topic is set"
+#define ARPL_INVITING(client, channel)                    ":ircserv 331 " + client + " " + channel + ": No topic is set"
 
 
 
