@@ -2,7 +2,7 @@
 
 #include "Server.hpp"
 
-Client::Client(int fd) : fd(fd), isAuthenticated(false), isRegistered(false), username("") {
+Client::Client(int fd) : fd(fd), isAuthenticated(false), isRegistered(false), isDeleted(false), username("") {
     this->nick = "";
 }
 
@@ -123,3 +123,13 @@ void Client::registerClient(std::queue<message>* messageQueue) {
 
 	messageQueue->push(std::make_pair(this->getFD(), welcomeMsg));
 }
+
+void Client::del() {
+    this->isDeleted = true;
+}
+
+bool Client::getDeleted() {
+    return this->isDeleted;
+}
+
+

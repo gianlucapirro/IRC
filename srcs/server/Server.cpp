@@ -12,6 +12,19 @@ void Server::processActivity() {
     }
 }
 
+void Server::deleteClients() {
+    std::vector<Client*> toDelete;
+    for (size_t i = 0; i < this->clients.size(); i++) {
+        if (this->clients[i]->getDeleted() == true) {
+            toDelete.push_back(this->clients[i]);
+        }
+    }
+
+    for (size_t i = 0; i < toDelete.size(); i++) {
+        deleteClient(toDelete[i]);
+    }
+}
+
 void Server::sendMessages() {
     message msg;
     
@@ -36,6 +49,7 @@ void Server::run() {
 
             processActivity();
             sendMessages();
+            deleteClients();
         }
     } catch (const std::exception& e) {
         std::cerr << e.what() << '\n';

@@ -41,6 +41,7 @@ class Server {
     void createClient(int newSocket);
     void handleClient(size_t i);
     void deleteClient(Client* client);
+    void deleteClients();
 
    public:
     Server(const Config& config);

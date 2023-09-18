@@ -2,7 +2,7 @@
 CC = c++
 
 # Compiler Flags
-CFLAGS = -Wall -Wextra -Werror -std=c++98 -g
+CFLAGS = -Wall -Wextra -Werror -std=c++98 -g -fsanitize=address
 
 # Includes
 INCLUDES = -Iincludes
@@ -23,6 +23,7 @@ SRC = Main.cpp \
       Channel.cpp \
       Client.cpp \
       Config.cpp \
+      Mode.cpp \
 	  utils.cpp
 
 # Prefix 'srcs/' to each source file

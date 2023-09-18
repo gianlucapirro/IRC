@@ -1,8 +1,7 @@
 #include "CommandHandler.hpp"
 #include "utils.hpp"
 
-CommandHandler::CommandHandler(std::queue<message>* messages, const Config* config, std::vector<Client*>* clients) {
-    this->channelHandler = ChannelHandler(messages, clients);
+CommandHandler::CommandHandler(std::queue<message>* messages, const Config* config, std::vector<Client*>* clients) : channelHandler(messages, clients){
     this->messageQueue = messages;
     this->config = config;
     this->clients = clients;
@@ -82,25 +81,30 @@ int CommandHandler::handleCommand(Client *client, const std::string& command, co
         handleKick(client, args);
     } else if (command == "PART") {
         handleLeave(client, args);
+    } else if (command == "TOPIC") {
+        handleTopic(client, args);
+    } else if (command == "INVITE") {
+        handleInvite(client, args);
+    } else if (command == "MODE") {
+        handleMode(client, args);
     }
     return NO_ACTION;
 }
 
+void CommandHandler::handleInvite(Client* client, const std::vector<std::string>& args) {
+    this->channelHandler.handleInvite(client, args);
+}
+
+void CommandHandler::handleTopic(Client* client, const std::vector<std::string>& args) {
+    this->channelHandler.handleTopic(client, args);
+}
+
 void CommandHandler::handleMode(Client* client, const std::vector<std::string>& args) {
-    this->channelHandler.handleMode(client, args, this->messageQueue);
+    this->channelHandler.handleMode(client, args);
 }
 
 void CommandHandler::handleJoin(Client *client, const std::vector<std::string>& args) {
     this->channelHandler.join(client, args, this->messageQueue);
-}
-
-void CommandHandler::handleCap(Client *client, const std::vector<std::string>& args) {
-    if (args[0] == "LS") {
-        std::string capabilities = "";
-        std::string response =
-            ResponseBuilder("ircserv").addCommand("CAP").addParameters("* LS :" + capabilities).build();
-        this->messageQueue->push(std::make_pair(client->getFD(), response));
-    }
 }
 
 void CommandHandler::handleCap(Client *client, const std::vector<std::string>& args) {

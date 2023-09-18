@@ -27,6 +27,11 @@ class Channel {
    private:
     std::vector<ChannelUser *> channelUsers;
     std::string key;
+    int limit;
+    std::string pass;
+    std::string topic;
+    bool canChangeTopic;
+    std::vector<std::string> invites;
     
    public:
     Channel(Client* creator, std::string key);
@@ -36,8 +41,20 @@ class Channel {
     void sendMsg(Client* client, const std::vector<std::string>& args, std::queue<message> *messageQueue);
     void broadcast(std::string msg, std::queue<message> *messageQueue);
     std::string getNicknames();
-    
     std::string getKey();
+
+    int getLimit();
+    int setLimit(int limit);
+    int getUserCount();
+    std::string getPass();
+    std::string setPass(std::string pass);
+    std::string getTopic();
+    std::string setTopic(std::string topic);
+    bool getCanChangeTopic();
+    bool setCanChangeTopic(bool canChangeTopic);
+    void addInvite(std::string nickname);
+    bool isInvited(std::string nickname);
+
 
 };
 

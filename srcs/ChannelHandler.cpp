@@ -14,18 +14,33 @@ void ChannelHandler::join(Client* client, const std::vector<std::string>& args, 
         return;
     }
     // TODO: check the name on wrong characters
-    Channel *currentChannel = this->getChannelByClient(client);
-    if (currentChannel) {
-        currentChannel->removeUser(client);
-    }
 
     Channel *channel = this->getChannelByKey(args[0]);
     if (channel == NULL) {
         Channel *newChannel = new Channel(client, args[0]);
         this->channels.push_back(newChannel);
         channel = newChannel;
+    } else if (channel->getLimit() != 0 && channel->getLimit() <= channel->getUserCount()) {
+        std::string response = ResponseBuilder("ircserv"
+            ).addCommand(ERR_CHANNELISFULL
+            ).addParameters(client->getNick() + " " + channel->getKey()
+            ).addTrailing("Channel is at max capacity"
+            ).build();
+        messageQueue->push(std::make_pair(client->getFD(), response));
+        return;
+    } else if (channel->getPass() != "" && (args.size() < 2 || args[1] != channel->getPass())) {
+        std::string response = ResponseBuilder("ircserv"
+            ).addCommand(ERR_BADCHANNELKEY
+            ).addParameters(client->getNick() + " " + channel->getKey()
+            ).addTrailing("Channel password is incorrect"
+            ).build();
+        messageQueue->push(std::make_pair(client->getFD(), response));
+        return;
     } else {
-        channel->addUser(client, false);
+        if (channel->getChannelUser(client) == NULL)
+            channel->addUser(client, false);
+        else
+            return;
     }
 
     std::string joinResponse = ResponseBuilder(client->getNick()
@@ -55,6 +70,7 @@ void ChannelHandler::join(Client* client, const std::vector<std::string>& args, 
 }
 
 void ChannelHandler::handleMsg(Client* client, const std::vector<std::string>& args, std::queue<message> *messageQueue) {
+    // TODO: avoid sending to channel that you're not in
     Channel *channel = this->getChannelByKey(args[0]);
     if (channel != NULL) {
         channel->sendMsg(client, args, messageQueue);
@@ -119,6 +135,50 @@ Channel *ChannelHandler::getChannelByKey(std::string key) {
     return NULL;
 }
 
+
+void ChannelHandler::handleTopic(Client* client, const std::vector<std::string>& args) {
+
+    if (args.size() < 1) {
+        std::string response = ResponseBuilder("ircserv").addCommand(ERR_NEEDMOREPARAMS).addTrailing("Need more parameters").build();
+        messageQueue->push(std::make_pair(client->getFD(), response));
+        return;
+    }
+
+    Channel* foundChannel = this->getChannelByKey(args[0]);
+    if (foundChannel == NULL) {
+        std::string response = ResponseBuilder("ircserv").addCommand(ERR_NOSUCHCHANNEL).addParameters(args[0]).addTrailing("No such channel").build();
+        messageQueue->push(std::make_pair(client->getFD(), response));
+        return;
+    }
+
+    ChannelUser* channelUser = foundChannel->getChannelUser(client);
+    if (channelUser == NULL) {
+        std::string response = ResponseBuilder("ircserv").addCommand(ERR_NOTONCHANNEL).addParameters(foundChannel->getKey()).addTrailing("You're not on that channel").build();
+        messageQueue->push(std::make_pair(client->getFD(), response));
+        return;
+    }
+
+    if (args.size() == 1) {
+        if (foundChannel->getTopic() == "") {
+            std::string response = ResponseBuilder("ircserv").addCommand(RPL_NOTOPIC).addParameters(foundChannel->getKey()).addTrailing("No topic is set").build();
+            messageQueue->push(std::make_pair(client->getFD(), response));
+        } else {
+            std::string response = ResponseBuilder("ircserv").addCommand(RPL_TOPIC).addParameters(foundChannel->getKey()).addTrailing(foundChannel->getTopic()).build();
+            messageQueue->push(std::make_pair(client->getFD(), response));
+        }
+        return;
+    }
+    if (foundChannel->getCanChangeTopic() == false && channelUser->isOperator == false) {
+        std::string response = ResponseBuilder("ircserv").addCommand(ERR_CHANOPRIVSNEEDED).addParameters(foundChannel->getKey()).addTrailing("You're not a channel operator").build();
+        messageQueue->push(std::make_pair(client->getFD(), response));
+        return;
+    }
+    foundChannel->setTopic(args[1]);
+    std::string response = ResponseBuilder("ircserv").addCommand("TOPIC").addParameters(foundChannel->getKey()).addTrailing(foundChannel->getTopic()).build();
+    foundChannel->broadcast(response, messageQueue);
+    return;
+}
+
 void ChannelHandler::handleLeave(Client* client, const std::vector<std::string>& channelsToLeave, std::queue<message> *messageQueue) {
 
     std::vector<Channel*> channels;
@@ -151,12 +211,94 @@ void ChannelHandler::handleLeave(Client* client, const std::vector<std::string>&
         ChannelUser* channelUser = channelUsers[i].first;
         Channel* channel = channelUsers[i].second;
         std::string formattedClient = client->getNick();
-        // :Nick!User@Host PART #channelname :OptionalPartMessage
         std::string response = ResponseBuilder(formattedClient).addCommand("PART").addParameters(channelsToLeave[i]).addTrailing("").build();
 
         channel->broadcast(response, messageQueue);
         channel->removeUser(channelUser->client);
     }
+}
+
+
+void ChannelHandler::removeClientFromAllChannels(Client* client) {
+    for (size_t i = 0; i < this->channels.size(); i++) {
+        Channel* channel = this->channels[i];
+        if (channel->getChannelUser(client) == NULL) {
+            continue;
+        }
+        std::string formattedClient = client->getNick();
+        std::string response = ResponseBuilder(formattedClient).addCommand("PART").addParameters(channel->getKey()).addTrailing("").build();
+        channel->broadcast(response, messageQueue);
+        channel->removeUser(client);
+    }
+}
+
+
+void ChannelHandler::handleInvite(Client* client, const std::vector<std::string>& args) {
+    if (args.size() < 2) {
+        std::string response = ResponseBuilder("ircserv").addCommand(ERR_NEEDMOREPARAMS).addTrailing("Need more parameters").build();
+        messageQueue->push(std::make_pair(client->getFD(), response));
+        return;
+    }
+
+    Client* invitedClient = getClientByNick(this->clients, args[0]);
+    if (invitedClient == NULL) {
+        std::string response = ResponseBuilder("ircserv").addCommand(ERR_NOSUCHNICK).addParameters(client->getNick() + " " + args[0]).addTrailing("No such nickname").build();
+        messageQueue->push(std::make_pair(client->getFD(), response));
+        return;
+    }
+
+    Channel* channel = this->getChannelByKey(args[1]);
+    if (channel == NULL) {
+        std::string response = ResponseBuilder("ircserv").addCommand(ERR_NOTONCHANNEL).addParameters(args[1]).addTrailing("No such channel").build();
+        messageQueue->push(std::make_pair(client->getFD(), response));
+        return;
+    }
+
+    ChannelUser* channelUser = channel->getChannelUser(client);
+    if (channelUser == NULL) {
+        std::string response = ResponseBuilder("ircserv"
+            ).addCommand(ERR_NOTONCHANNEL
+            ).addParameters(client->getNick() + " " + channel->getKey()
+            ).addTrailing("You are not on this channel"
+            ).build();
+        messageQueue->push(std::make_pair(client->getFD(), response));
+        return;
+    }
+
+    if (channelUser->isOperator == false) {
+        std::string response = ResponseBuilder("ircserv"
+            ).addCommand(ERR_CHANOPRIVSNEEDED
+            ).addParameters(client->getNick() + " " + channel->getKey()
+            ).addTrailing("You are not a channel operator"
+            ).build();
+        messageQueue->push(std::make_pair(client->getFD(), response));
+        return;
+    }
+
+    ChannelUser* invitedChannelUser = channel->getChannelUser(invitedClient);
+    if (invitedChannelUser != NULL) {
+        std::string response = ResponseBuilder("ircserv"
+            ).addCommand(ERR_USERONCHANNEL
+            ).addParameters(client->getNick() + " " + invitedClient->getNick() + " " + channel->getKey()
+            ).addTrailing("This user is already on this channel"
+            ).build();
+        messageQueue->push(std::make_pair(client->getFD(), response));
+        return;
+    }
+
+    std::string inviterResponse = ResponseBuilder("ircserv"
+        ).addCommand(RPL_INVITING
+        ).addParameters(client->getNick() + " " + invitedClient->getNick() + " " + channel->getKey()
+        ).build();
+    messageQueue->push(std::make_pair(client->getFD(), inviterResponse));
+
+    std::string inviteeResponse = ResponseBuilder(client->getNick()
+        ).addCommand("INVITE"
+        ).addParameters(invitedClient->getNick()
+        ).addTrailing(channel->getKey()
+        ).build();
+    messageQueue->push(std::make_pair(invitedClient->getFD(), inviteeResponse));
 
 }
 
+void Chann

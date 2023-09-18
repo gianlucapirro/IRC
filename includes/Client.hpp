@@ -14,6 +14,7 @@ class Client {
 
     bool isAuthenticated;
 	bool isRegistered;
+    bool isDeleted;
     std::string nick;
     std::string username;
     std::string hostname;
@@ -41,6 +42,8 @@ class Client {
     bool isValidUsername(const std::string& user);
 
     void handleIncomingData(const char* data, size_t length, std::vector<std::string> &commands);
+    void del();
+    bool getDeleted();
 };
 
 #endif

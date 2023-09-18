@@ -2,7 +2,7 @@
 
 #include "Channel.hpp"
 
-Channel::Channel(Client *creator, std::string key) : key(key) {
+Channel::Channel(Client *creator, std::string key) : key(key), limit(0), pass(""), topic(""), canChangeTopic(false) {
     this->addUser(creator, true);
 }
 
@@ -79,4 +79,44 @@ std::string Channel::getNicknames() {
             names += " ";
     }
     return names;
+}
+
+int Channel::getLimit() {
+    return this->limit;
+}
+
+int Channel::setLimit(int limit) {
+    this->limit = limit;
+    return this->limit;
+}
+
+int Channel::getUserCount() {
+    return this->channelUsers.size();
+}
+
+std::string Channel::getPass() {
+    return this->pass;
+}
+
+std::string Channel::setPass(std::string pass) {
+    this->pass = pass;
+    return this->pass;
+}
+
+std::string Channel::getTopic() {
+    return this->topic;
+}
+
+std::string Channel::setTopic(std::string topic) {
+    this->topic = topic;
+    return this->topic;
+}
+
+bool Channel::getCanChangeTopic() {
+    return this->canChangeTopic;
+}
+
+bool Channel::setCanChangeTopic(bool canChangeTopic) {
+    this->canChangeTopic = canChangeTopic;
+    return this->canChangeTopic;
 }

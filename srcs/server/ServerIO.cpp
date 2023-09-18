@@ -12,7 +12,8 @@ void Server::handleBuffer(std::vector<std::string> commands, Client* client) {
         int action = this->commandHandler.handleCommand(client, it->first, it->second);
         switch (action) {
             case QUIT_USER:
-                this->deleteClient(client);
+                this->commandHandler.channelHandler.removeClientFromAllChannels(client);
+                client->del();
                 return;
         }
     }
@@ -32,12 +33,15 @@ void Server::acceptNewConnection() {
 
 void Server::handleClient(size_t i) {
     Client *client = this->clients[i];
+    if (client->getDeleted() == true)
+        return;
     char buffer[BUFFER_SIZE];
     ssize_t valread = read(this->fds[i].fd, buffer, BUFFER_SIZE);
 	// std::cout << buffer << std::endl;
 
     if (valread <= 0) {
-        deleteClient(client);
+        this->commandHandler.channelHandler.removeClientFromAllChannels(client);
+        client->del();
     } else {
         std::vector<std::string> commands;
         client->handleIncomingData(buffer, valread, commands);
@@ -61,5 +65,7 @@ void Server::deleteClient(Client* client) {
     close((this->fds)[clientIndex].fd);
     this->fds.erase(this->fds.begin() + clientIndex);
     this->clients.erase(this->clients.begin() + clientIndex);
+    
+
     delete client;
 }
