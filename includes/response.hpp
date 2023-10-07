@@ -25,7 +25,7 @@
 #define AERR_USERONCHANNEL(client, nickname, channel)    ":ircserv 443 " + client + " " + nickname + " " + channel + " :is already on channel\r\n"
 
 
-#define AERR_INVITEONLYCHAN(client, channel)   ":ircserv 473 " + client + " " + channel + " :You are not invited to this channel\r\n"
+#define AERR_INVITEONLYCHAN(client, channel)             ":ircserv 473 " + client + " " + channel + " :You are not invited to this channel\r\n"
 
 
 /* Replies */
@@ -39,12 +39,12 @@
 #define ARPL_PRIVMSG(client, target, msg)                ":" + client + " PRIVMSG " + target + " :" + msg 
 #define ARPL_NOTICE(client, target, msg)                 ":" + client + " NOTICE " + target + " :" + msg 
 #define ARPL_QUIT(client, msg)                           ":" + client + " QUIT :Quit: " + msg 
+#define ARPL_INVITE(client, channel, invitee)            ":" + client + " INVITE " + invitee " :" + channel
 #define ARPL_KICK(client, channel, target, reason)       ":" + client + " KICK " + channel + " " + target + " :" + reason
 #define ARPL_MODE(client, channel, modes, args)          ":" + client + " MODE " + channel + " " + modes + " " + args
-#define ARPL_NOTOPIC(client, channel)                    ":ircserv 331 " + client + " " + channel + ": No topic is set"
-#define ARPL_INVITING(client, channel)                    ":ircserv 331 " + client + " " + channel + ": No topic is set"
-
-
+#define ARPL_NOTOPIC(client, channel)                    ":ircserv 331 " + client + " " + channel + " : No topic is set"
+#define ARPL_TOPIC(client, channel, topic)               ":ircserv 332 " + client + " " + channel + " :" + topic
+#define ARPL_INVITING(client, channel, invitee)          ":ircserv 341 " + client + " " + channel + " " + invitee " :"
 
 
 typedef std::pair<int, std::string> message;
