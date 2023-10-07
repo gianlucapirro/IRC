@@ -37,17 +37,7 @@ void ChannelHandler::handleInvite(Client* client, const std::vector<std::string>
     }
 
     respond(client->getFD(), ARPL_INVITING(client->getNick(), invitedClient->getNick(), channel->getKey()));
-    std::string inviterResponse = ResponseBuilder("ircserv"
-        ).addCommand(RPL_INVITING
-        ).addParameters(client->getNick() + " " + invitedClient->getNick() + " " + channel->getKey()
-        ).build();
-    messageQueue->push(std::make_pair(client->getFD(), inviterResponse));
-
-    std::string inviteeResponse = ResponseBuilder(client->getNick()
-        ).addCommand("INVITE"
-        ).addParameters(invitedClient->getNick()
-        ).addTrailing(channel->getKey()
-        ).build();
-    messageQueue->push(std::make_pair(invitedClient->getFD(), inviteeResponse));
+    respond(invitedClient->getFD(), ARPL_INVITE(client->getNick(), channel->getKey(), invitedClient->getNick()));
+    
     channel->addInvite(invitedClient->getNick());
 }

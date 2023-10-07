@@ -1,5 +1,6 @@
 #include "response.hpp"
-
+#include <string>
+#include <fcntl.h>
 
 
 static void respondWithQueue(int fd, std::string msg, std::queue<message> *passedQueue) {
@@ -17,13 +18,4 @@ void respondSetQueue(std::queue<message>* messageQueue) {
 
 void respond(int fd, std::string msg) {
     respondWithQueue(fd, msg, NULL);
-}
-
-void respondYouHaveNotRegistered(int fd, std::queue<message>* messageQueue) {
-    std::string response = ResponseBuilder("ircserv"
-        ).addCommand(ERR_NOTREGISTERED
-        ).addParameters(""
-        ).addTrailing("You have not registered"
-        ).build();
-    messageQueue->push(std::make_pair(fd, response));
 }

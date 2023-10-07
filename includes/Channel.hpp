@@ -15,9 +15,7 @@
 
 #include "utils.hpp"
 #include "Client.hpp"
-#include "ResponseBuilder.hpp"
-
-typedef std::pair<int, std::string> message; //TODO: make this client instead of using the fd
+#include "response.hpp"
 
 typedef struct {
     bool isOperator;
@@ -40,8 +38,8 @@ class Channel {
     ChannelUser* getChannelUser(Client* client);
     bool removeUser(Client* user);
     void addUser(Client *client, bool isOperator);
-    void sendMsg(Client* client, const std::vector<std::string>& args, std::queue<message> *messageQueue);
-    void broadcast(std::string msg, std::queue<message> *messageQueue);
+    void sendMsg(Client* client, const std::vector<std::string>& args);
+    void broadcast(std::string msg);
     std::string getNicknames();
     std::string getKey();
 

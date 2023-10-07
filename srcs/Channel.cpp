@@ -41,7 +41,7 @@ void Channel::addUser(Client *client, bool isOperator) {
     removeStrFromVec(this->invites, client->getNick());
 }
 
-void Channel::sendMsg(Client* client, const std::vector<std::string>& args, std::queue<message> *messageQueue) {
+void Channel::sendMsg(Client* client, const std::vector<std::string>& args) {
     std::string response = ":" + client->getNick() + " PRIVMSG";
 
     std::ostringstream oss;
@@ -55,17 +55,17 @@ void Channel::sendMsg(Client* client, const std::vector<std::string>& args, std:
     for (size_t i = 0; i < this->channelUsers.size(); i++) {
         ChannelUser *user = this->channelUsers[i];
         if (user->client->getFD() != client->getFD()) {
-            messageQueue->push(std::make_pair(user->client->getFD(), response));
+            respond(user->client->getFD(), response);
         }
     }
 }
 
-void Channel::broadcast(std::string msg, std::queue<message> *messageQueue) {
+void Channel::broadcast(std::string msg) {
     msg += "\r\n";
 
     for (size_t i = 0; i < this->channelUsers.size(); i++) {
         ChannelUser *user = this->channelUsers[i];
-        messageQueue->push(std::make_pair(user->client->getFD(), msg));
+        respond(user->client->getFD(), msg);
     }
 }
 

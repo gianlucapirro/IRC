@@ -21,10 +21,11 @@ SRC = Main.cpp \
       ResponseBuilder.cpp \
 	  responses.cpp \
       ChannelHandler.cpp \
+	  invite.cpp \
+      Mode.cpp \
       Channel.cpp \
       Client.cpp \
       Config.cpp \
-      Mode.cpp \
 	  utils.cpp
 
 # Prefix 'srcs/' to each source file

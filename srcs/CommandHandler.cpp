@@ -1,8 +1,6 @@
 #include "CommandHandler.hpp"
-#include "utils.hpp"
 
-CommandHandler::CommandHandler(std::queue<message>* messages, const Config* config, std::vector<Client*>* clients) : channelHandler(messages, clients){
-    this->messageQueue = messages;
+CommandHandler::CommandHandler(const Config* config, std::vector<Client*>* clients) : channelHandler(clients){
     this->config = config;
     this->clients = clients;
 }
@@ -44,10 +42,8 @@ std::vector<parsedCommand> CommandHandler::parseCommands(std::vector<std::string
 int CommandHandler::handleCommand(Client *client, const std::string& command, const std::vector<std::string>& args) {
 
     if (args.empty()) {
-        std::string response =
-            ResponseBuilder("ircserv").addCommand("461").addTrailing("Not enough parameters").build();
+        respond(client->getFD(), AERR_NEEDMOREPARAMS(client->getNick(), command));
 
-        this->messageQueue->push(std::make_pair(client->getFD(), response));
         return NO_ACTION;
     }
     // Check commands that require no authentication
@@ -70,8 +66,7 @@ int CommandHandler::handleCommand(Client *client, const std::string& command, co
 
     // Check registration
     if (!client->getIsRegistered()) {
-        std::string response = ResponseBuilder("ircserv").addCommand("451").addParameters("").addTrailing("You have not registered").build();
-        this->messageQueue->push(std::make_pair(client->getFD(), response));
+        respond(client->getFD(), AERR_NOTREGISTERED(client->getNick()));
         return NO_ACTION;
     } else if (command == "JOIN") {
         handleJoin(client, args);
@@ -104,15 +99,12 @@ void CommandHandler::handleMode(Client* client, const std::vector<std::string>& 
 }
 
 void CommandHandler::handleJoin(Client *client, const std::vector<std::string>& args) {
-    this->channelHandler.join(client, args, this->messageQueue);
+    this->channelHandler.join(client, args);
 }
 
 void CommandHandler::handleCap(Client *client, const std::vector<std::string>& args) {
     if (args[0] == "LS") {
-        std::string capabilities = "";
-        std::string response =
-            ResponseBuilder("ircserv").addCommand("CAP").addParameters("* LS :" + capabilities).build();
-        this->messageQueue->push(std::make_pair(client->getFD(), response));
+        respond(client->getFD(), ARPL_CAP_LS());
     }
 }
 
@@ -120,8 +112,8 @@ void CommandHandler::handlePass(Client *client, const std::vector<std::string>& 
     if (args[0] == this->config->getPassword()) {
         client->setIsAuthenticated(true);
     } else {
-        std::string response = ResponseBuilder("ircserv").addCommand("464").addParameters("").addTrailing("Password incorrect").build();
-        this->messageQueue->push(std::make_pair(client->getFD(), response));
+        respond(client->getFD(), AERR_PASSWDMISMATCH(client->getNick()));
+
         // TODO: figure out, if pass wrong. close current fd, or idle and ask try pass again?
     }
 }
@@ -129,69 +121,50 @@ void CommandHandler::handlePass(Client *client, const std::vector<std::string>& 
 void CommandHandler::handleNick(Client *client, const std::vector<std::string>& args) {
 
     if (!client->isValidNickname(args[0])) {
-        std::string response = ResponseBuilder("ircserv")
-                                   .addCommand("432")
-                                   .addParameters("* " + args[0])
-                                   .addTrailing("Erroneous nickname")
-                                   .build();
-        this->messageQueue->push(std::make_pair(client->getFD(), response));
+        respond(client->getFD(), AERR_ERRONEUSNICKNAME(client->getNick(), args[0]));
         return;
     }
 
     if (this->isNicknameInUse(args[0])) {
-        std::string response = ResponseBuilder("ircserv")
-                                   .addCommand("433")
-                                   .addParameters("* " + args[0])
-                                   .addTrailing("Nickname is already in use")
-                                   .build();
-        this->messageQueue->push(std::make_pair(client->getFD(), response));
+        respond(client->getFD(), AERR_NICKNAMEINUSE(client->getNick(), args[0]));
         return;
     }
 
     const std::string nick = client->getNick();
-    std::string response = ResponseBuilder(nick).addCommand("NICK").addParameters(args[0]).build();
+    respond(client->getFD(), ARPL_NICK(client->getNick(), args[0]));
+
     client->setNick(args[0]);
-    this->messageQueue->push(std::make_pair(client->getFD(), response));
 	if (client->canBeRegistered())
-		client->registerClient(this->messageQueue);
+		client->registerClient();
 }
 
 void CommandHandler::handleUser(Client *client, const std::vector<std::string>& args) {
     if (args.size() != 4) {
-        std::string response =
-            ResponseBuilder("ircserv").addCommand("461").addTrailing("Not enough parameters").build();
-        this->messageQueue->push(std::make_pair(client->getFD(), response));
+        respond(client->getFD(), AERR_NEEDMOREPARAMS(client->getNick(), "USER"));
         return;
     }
 
     if (!client->getIsAuthenticated()) {
-        std::string response =
-            ResponseBuilder("ircserv").addCommand("451").addParameters("").addTrailing("You have not registered").build();
-        this->messageQueue->push(std::make_pair(client->getFD(), response));
+        respond(client->getFD(), AERR_NOTREGISTERED(client->getNick()));
         return;
     }
     if (!client->isValidUsername(args[0])) {
-        std::string response = ResponseBuilder("ircserv")
-                                   .addCommand("432")
-                                   .addParameters("* " + args[0])
-                                   .addTrailing("Erroneous username")
-                                   .build();
-        this->messageQueue->push(std::make_pair(client->getFD(), response));
+        respond(client->getFD(), AERR_ERRONEUSNICKNAME(client->getNick(), args[0]));
         return;
     }
 
 	client->setUsername(args[0]);
 	client->setHostname(args[2]);
 	if (client->canBeRegistered())
-		client->registerClient(this->messageQueue);
+		client->registerClient();
 }
 
 void CommandHandler::handlePrivMsg(Client *client, const std::vector<std::string>& args) {
     std::string channelOrUser = args[0];
     if (channelOrUser[0] == '#') {
-        this->channelHandler.handleMsg(client, args, this->messageQueue);
+        this->channelHandler.handleMsg(client, args);
     } else {
-		sendPrivateMessage(client, this->clients, args, this->messageQueue);
+		sendPrivateMessage(client, this->clients, args);
 	}
 }
 
@@ -211,26 +184,26 @@ void CommandHandler::handleKick(Client *client, const std::vector<std::string>& 
         reason = args[i+1];
     }
 
-
-    this->channelHandler.handleKick(client, channelsToKick, clientsToKick, this->clients, this->messageQueue, reason);
+    this->channelHandler.handleKick(client, channelsToKick, clientsToKick, reason);
 }
 
 void CommandHandler::handleLeave(Client* client, const std::vector<std::string>& args) {
     if (args.size() < 1) {
-        std::string response = ResponseBuilder("ircserv").addCommand("461").addTrailing("Need more parameters").build();
-        this->messageQueue->push(std::make_pair(client->getFD(), response));
+        respond(client->getFD(), AERR_NEEDMOREPARAMS(client->getNick(), "PART"));
         return;
     }
     std::vector<std::string> channelsToLeave = splitString(args[0], ',');
-    this->channelHandler.handleLeave(client, channelsToLeave, this->messageQueue);
+    this->channelHandler.handleLeave(client, channelsToLeave);
 }
 
 
 Client* CommandHandler::searchClient(int clientFD) {
-    for (std::vector<Client*>::iterator it = this->clients->begin(); it != this->clients->end(); ++it) {
-        if ((*it)->getFD() == clientFD) {
-            return *it;  // nee jort het kan niet anders, dat dacht jij
-        }
+    std::vector<Client*> clients = *(this->clients);
+
+    for (size_t i = 0; i < clients.size(); ++i) {
+        if (clients[i]->getFD() == clientFD) {
+            return clients[i];
+        } // ja, gian het kan wel anders!
     }
     return NULL;
 }

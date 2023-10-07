@@ -15,11 +15,12 @@
 #include <sstream>
 
 #include "Client.hpp"
+#include "response.hpp"
 
 int setNonBlocking(int fd);
-void sendPrivateMessage(Client *client, std::vector<Client*> *clients, const std::vector<std::string>& args, std::queue<message>* messageQueue);
+void sendPrivateMessage(Client *client, std::vector<Client*> *clients, const std::vector<std::string>& args);
+void removeStrFromVec(std::vector<std::string>& vec, std::string str);
 Client *getClientByNick(std::vector<Client*>* clients, std::string nick);
 std::vector<std::string> splitString(const std::string& str, char delimiter);
-void removeStrFromVec(std::vector<std::string>& vec, std::string str);
 
 #endif

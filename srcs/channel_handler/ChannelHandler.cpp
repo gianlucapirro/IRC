@@ -1,12 +1,10 @@
-
 #include "ChannelHandler.hpp"
 
-ChannelHandler::ChannelHandler(std::queue<message>* messageQueue, std::vector<Client*> *clients) {
-    this->messageQueue = messageQueue;
+ChannelHandler::ChannelHandler(std::vector<Client*> *clients) {
     this->clients = clients;
 }
 
-void ChannelHandler::join(Client* client, const std::vector<std::string>& args, std::queue<message> *messageQueue) {
+void ChannelHandler::join(Client* client, const std::vector<std::string>& args) {
     if (!client->getIsAuthenticated()) {
         respond(client->getFD(), AERR_NOTREGISTERED(client->getNick()));
         return;
@@ -33,7 +31,7 @@ void ChannelHandler::join(Client* client, const std::vector<std::string>& args, 
         channel->addUser(client, false);
     }
 
-    channel->broadcast(ARPL_JOIN(client->getNick(), channel->getKey()), messageQueue);
+    channel->broadcast(ARPL_JOIN(client->getNick(), channel->getKey()));
 
     // TODO: add topic if it exists
     respond(client->getFD(), ARPL_NOTOPIC(client->getNick(), channel->getKey()));
@@ -43,11 +41,11 @@ void ChannelHandler::join(Client* client, const std::vector<std::string>& args, 
     respond(client->getFD(), ARPL_ENDOFNAMES(client->getNick(), channel->getKey()));
 }
 
-void ChannelHandler::handleMsg(Client* client, const std::vector<std::string>& args, std::queue<message> *messageQueue) {
+void ChannelHandler::handleMsg(Client* client, const std::vector<std::string>& args) {
     // TODO: avoid sending to channel that you're not in
     Channel *channel = this->getChannelByKey(args[0]);
     if (channel != NULL) {
-        channel->sendMsg(client, args, messageQueue);
+        channel->sendMsg(client, args);
     }
 }
 
@@ -55,8 +53,6 @@ void ChannelHandler::handleKick(
     Client* client,
     const std::vector<std::string>& channelsToKick,
     const std::vector<std::string>& clientsToKick,
-    std::vector<Client*> *clients,
-    std::queue<message> *messageQueue,
     std::string reason
 ) {
     std::vector<Channel*> foundChannels;
@@ -143,11 +139,11 @@ void ChannelHandler::handleTopic(Client* client, const std::vector<std::string>&
     }
     foundChannel->setTopic(args[1]);
     std::string response = ARPL_TOPIC(client->getNick(), foundChannel->getKey(), foundChannel->getTopic());
-    foundChannel->broadcast(response, messageQueue);
+    foundChannel->broadcast(response);
     return;
 }
 
-void ChannelHandler::handleLeave(Client* client, const std::vector<std::string>& channelsToLeave, std::queue<message> *messageQueue) {
+void ChannelHandler::handleLeave(Client* client, const std::vector<std::string>& channelsToLeave) {
 
     std::vector<Channel*> channels;
 
@@ -179,7 +175,7 @@ void ChannelHandler::handleLeave(Client* client, const std::vector<std::string>&
         std::string formattedClient = client->getNick();
         std::string response = ARPL_PART(client->getNick(), channelsToLeave[i]);
 
-        channel->broadcast(response, messageQueue);
+        channel->broadcast(response);
         channel->removeUser(channelUser->client);
     }
 }
@@ -193,49 +189,7 @@ void ChannelHandler::removeClientFromAllChannels(Client* client) {
         }
         std::string formattedClient = client->getNick();
         std::string response = ARPL_PART(client->getNick(), channel->getKey());
-        channel->broadcast(response, messageQueue);
+        channel->broadcast(response);
         channel->removeUser(client);
     }
-}
-
-
-void ChannelHandler::handleInvite(Client* client, const std::vector<std::string>& args) {
-    if (args.size() < 2) {
-        respond(client->getFD(), AERR_NEEDMOREPARAMS(client->getNick(), "INVITE"));
-        return;
-    }
-
-    Client* invitedClient = getClientByNick(this->clients, args[0]);
-    if (invitedClient == NULL) {
-        respond(client->getFD(), AERR_NOSUCHNICK(client->getNick(), args[0]));
-        return;
-    }
-
-    Channel* channel = this->getChannelByKey(args[1]);
-    if (channel == NULL) {
-        respond(client->getFD(), AERR_NOSUCHCHANNEL(client->getNick(), args[1]));
-        return;
-    }
-
-    ChannelUser* channelUser = channel->getChannelUser(client);
-    if (channelUser == NULL) {
-        respond(client->getFD(), AERR_NOTONCHANNEL(client->getNick(), channel->getKey()));
-        return;
-    }
-
-    if (channelUser->isOperator == false) {
-        respond(client->getFD(), AERR_CHANOPRIVSNEEDED(client->getNick(), channel->getKey()));
-        return;
-    }
-
-    ChannelUser* invitedChannelUser = channel->getChannelUser(invitedClient);
-    if (invitedChannelUser != NULL) {
-        respond(client->getFD(), AERR_USERONCHANNEL(client->getNick(), invitedClient->getNick(), channel->getKey()));
-        return;
-    }
-
-    respond(client->getFD(), ARPL_INVITING(client->getNick(), invitedClient->getNick(), channel->getKey()));
-    respond(invitedClient->getFD(), ARPL_INVITE(client->getNick(), channel->getKey(), invitedClient->getNick()));
-    
-    channel->addInvite(invitedClient->getNick());
 }

@@ -112,16 +112,9 @@ bool Client::canBeRegistered() const {
 	return true;
 }
 
-void Client::registerClient(std::queue<message>* messageQueue) {
+void Client::registerClient() {
 	this->isRegistered = true;
-	std::string welcomeMsg =
-	ResponseBuilder("ircserv")
-		.addCommand("001")
-		.addParameters(this->getNick())
-		.addTrailing("Welcome to the Internet Relay Network " + this->getFullClientIdentifier())
-		.build();
-
-	messageQueue->push(std::make_pair(this->getFD(), welcomeMsg));
+    respond(this->getFD(), ARPL_WELCOME(this->getNick()));
 }
 
 void Client::del() {

@@ -16,11 +16,7 @@
 
 #include "response.hpp"
 #include "Channel.hpp"
-#include "ResponseBuilder.hpp"
 #include "utils.hpp"
-#include "commands.hpp"
-
-typedef std::pair<int, std::string> message;
 
 struct ModeChange {
     int operation;
@@ -32,7 +28,6 @@ struct ModeChange {
 class ChannelHandler {
    private:
     std::vector<Channel*> channels;
-    std::queue<message> *messageQueue;
     std::vector<Client*> *clients;  // vector of connected clients
 
     ChannelHandler();
@@ -50,11 +45,11 @@ class ChannelHandler {
     bool modeSetInviteOnly(Client* client, ModeChange change);
 
    public:
-    ChannelHandler(std::queue<message>* messageQueue, std::vector<Client*> *clients);
-    void join(Client *client, const std::vector<std::string>& args, std::queue<message> *messageQueue);
-    void handleMsg(Client* client, const std::vector<std::string>& args, std::queue<message> *messageQueue);
-    void handleKick(Client* client, const std::vector<std::string>& channelsToKick, const std::vector<std::string>& clientsToKick, std::vector<Client*> *clients, std::queue<message> *messageQueue, std::string reason);
-    void handleLeave(Client* client, const std::vector<std::string>& channelsToLeave, std::queue<message> *messageQueue);
+    ChannelHandler(std::vector<Client*> *clients);
+    void join(Client *client, const std::vector<std::string>& args);
+    void handleMsg(Client* client, const std::vector<std::string>& args);
+    void handleKick(Client* client, const std::vector<std::string>& channelsToKick, const std::vector<std::string>& clientsToKick, std::string reason);
+    void handleLeave(Client* client, const std::vector<std::string>& channelsToLeave);
     void handleMode(Client* client, const std::vector<std::string>& args);
     void handleTopic(Client* client, const std::vector<std::string>& args);
     void handleInvite(Client* client, const std::vector<std::string>& args);

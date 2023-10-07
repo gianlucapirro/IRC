@@ -4,8 +4,6 @@
 #include <string>
 #include <vector>
 
-typedef std::pair<int, std::string> message;
-
 
 class Client {
    private:
@@ -32,7 +30,7 @@ class Client {
     void setNick(const std::string& nick);
     void setUsername(const std::string& username);
     void setHostname(const std::string& hostname);
-	void registerClient(std::queue<message>* messageQueue);
+	void registerClient();
 	
     void setIsAuthenticated(bool isAuthenticated);
 	bool canBeRegistered() const;
