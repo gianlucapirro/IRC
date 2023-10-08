@@ -1,0 +1,43 @@
+#!/usr/bin/expect
+
+# Variables (replace these with your actual credentials and server info)
+set timeout 1
+set server localhost
+set port 1234
+set nick testbot 
+set username testbot
+set realname "testbot"
+set password pass
+
+# Create a base64-encoded string for SASL authentication
+set encoded_credentials [exec echo -n "\0$username\0$password"]
+
+# Start nc connected to the IRC server
+spawn nc $server $port
+
+send "CAP LS\r"
+expect  {
+    "*ircserv*" {
+    }
+    timeout {
+        puts "Authentication failed!\r\n"
+        exit
+    }
+}
+
+send "PASS $password\r"
+send "NICK $nick\r"
+send "USER $username 0 * :$realname\r"
+
+expect  {
+    "*Welcome*" {
+    }
+    timeout {
+        puts "Authentication failed!\r\n"
+        exit
+    }
+}
+
+
+
+

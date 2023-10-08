@@ -3,8 +3,6 @@
 #include <queue>
 #include <string>
 
-typedef std::pair<int, std::string> message;
-
 // /* Error Responses */
 
 #define AERR_NOTREGISTERED(client)                       ":ircserv 451 " + client + " :You have not registered\r\n"
@@ -33,23 +31,24 @@ typedef std::pair<int, std::string> message;
 
 /* Replies */
 
-#define ARPL_WELCOME(client)                             "001 " + client + " :Welcome " + client + " to the Internet Relay Network"
-#define ARPL_NAMREPLY(client, channel, users)            ":ircserv 353 " + client + " = " + channel + " :" + users
-#define ARPL_ENDOFNAMES(client, channel)                 ":ircserv 366 " + client + " " + channel + " :End of /NAMES list."
-#define ARPL_NICK(client, nick)                          ":" + client + " NICK :" + nick
-#define ARPL_JOIN(client, channel)                       ":" + client + " JOIN :" + channel
-#define ARPL_PART(client, channel)                       ":" + client + " PART :" + channel
-#define ARPL_PING(client, token)                         ":" + client + " PONG :" + token
-#define ARPL_PRIVMSG(client, target, msg)                ":" + client + " PRIVMSG " + target + " :" + msg 
-#define ARPL_NOTICE(client, target, msg)                 ":" + client + " NOTICE " + target + " :" + msg 
-#define ARPL_QUIT(client, msg)                           ":" + client + " QUIT :Quit: " + msg 
-#define ARPL_INVITE(client, channel, invitee)            ":" + client + " INVITE " + invitee + " :" + channel
-#define ARPL_KICK(client, channel, target, reason)       ":" + client + " KICK " + channel + " " + target + " :" + reason
-#define ARPL_MODE(client, channel, modes, args)          ":" + client + " MODE " + channel + " " + modes + " " + args
-#define ARPL_CAP_LS()                                    ":ircserv CAP * LS :" // Add the capabilities
-#define ARPL_NOTOPIC(client, channel)                    ":ircserv 331 " + client + " " + channel + " : No topic is set"
-#define ARPL_TOPIC(client, channel, topic)               ":ircserv 332 " + client + " " + channel + " :" + topic
-#define ARPL_INVITING(client, channel, invitee)          ":ircserv 341 " + client + " " + channel + " " + invitee + " :"
+#define ARPL_WELCOME(client)                             ":ircserv 001 " + client + " :Welcome " + client + " to the Internet Relay Network\r\n"
+#define ARPL_NAMREPLY(client, channel, users)            ":ircserv 353 " + client + " = " + channel + " :" + users + "\r\n"
+#define ARPL_ENDOFNAMES(client, channel)                 ":ircserv 366 " + client + " " + channel + " :End of /NAMES list.\r\n"
+#define ARPL_NICK(client, nick)                          ":" + client + " NICK :" + nick + "\r\n"
+#define ARPL_JOIN(client, channel)                       ":" + client + " JOIN :" + channel + "\r\n"
+#define ARPL_PART(client, channel, reason)               ":" + client + " PART " + channel + " " + reason + "\r\n"
+#define ARPL_PING(client, token)                         ":" + client + " PONG :" + token + "\r\n"
+#define ARPL_PRIVMSG(client, target, msg)                ":" + client + " PRIVMSG " + target + " :" + msg  + "\r\n"
+#define ARPL_TOPIC(client, channel, topic)               ":ircserv 332 " + client + " " + channel + " :" + topic + "\r\n"
+#define ARPL_NOTICE(client, target, msg)                 ":" + client + " NOTICE " + target + " :" + msg  + "\r\n"
+#define ARPL_QUIT(client, msg)                           ":" + client + " QUIT :Quit: " + msg  + "\r\n"
+#define ARPL_PONG()                                      "PONG ircserv\r\n"
+#define ARPL_INVITE(client, channel, invitee)            ":" + client + " INVITE " + invitee + " :" + channel + "\r\n"
+#define ARPL_KICK(client, channel, target, reason)       ":" + client + " KICK " + channel + " " + target + " :" + reason + "\r\n"
+#define ARPL_MODE(client, channel, modes, args)          ":" + client + " MODE " + channel + " " + modes + " " + args + "\r\n"
+#define ARPL_CAP_LS()                                    ":ircserv CAP * LS :\r\n" // Add the capabilitie
+#define ARPL_NOTOPIC(client, channel)                    ":ircserv 331 " + client + " " + channel + " :No topic is set\r\n"
+#define ARPL_INVITING(client, channel, invitee)          ":ircserv 341 " + client + " " + channel + " " + invitee + " :\r\n"
 
 
 typedef std::pair<int, std::string> message;

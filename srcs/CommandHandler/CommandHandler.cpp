@@ -39,36 +39,20 @@ std::vector<parsedCommand> CommandHandler::parseCommands(std::vector<std::string
     return parsedCommands;
 }
 
-int CommandHandler::handleCommand(Client *client, const std::string& command, const std::vector<std::string>& args) {
+
+void CommandHandler::handleCommand(Client *client, const std::string& command, const std::vector<std::string>& args) {
 
     if (args.empty()) {
         respond(client->getFD(), AERR_NEEDMOREPARAMS(client->getNick(), command));
-
-        return NO_ACTION;
+        return;
     }
-    // Check commands that require no authentication
-
-    if (command == "PASS") {
-        handlePass(client, args);
-        return NO_ACTION;
-    } else if (command == "NICK") {
-        handleNick(client, args);
-        return NO_ACTION;
-    } else if (command == "USER") {
-        handleUser(client, args);
-        return NO_ACTION;
-    } else if (command == "QUIT") {
-        return QUIT_USER;
-    } else if (command == "CAP") {
-        handleCap(client, args);
-        return NO_ACTION;
+    if (!client->getIsRegistered()) {
+        handleRegistration(client, command, args);
+        return;
     }
 
     // Check registration
-    if (!client->getIsRegistered()) {
-        respond(client->getFD(), AERR_NOTREGISTERED(client->getNick()));
-        return NO_ACTION;
-    } else if (command == "JOIN") {
+    if (command == "JOIN") {
         handleJoin(client, args);
     } else if (command == "PRIVMSG") {
         handlePrivMsg(client, args);
@@ -76,14 +60,17 @@ int CommandHandler::handleCommand(Client *client, const std::string& command, co
         handleKick(client, args);
     } else if (command == "PART") {
         handleLeave(client, args);
+    } else if (command == "NICK") {
+        handleNick(client, args);
     } else if (command == "TOPIC") {
         handleTopic(client, args);
     } else if (command == "INVITE") {
         handleInvite(client, args);
     } else if (command == "MODE") {
         handleMode(client, args);
+    } else if (command == "PING") {
+        handlePing(client);
     }
-    return NO_ACTION;
 }
 
 void CommandHandler::handleInvite(Client* client, const std::vector<std::string>& args) {
@@ -188,12 +175,12 @@ void CommandHandler::handleKick(Client *client, const std::vector<std::string>& 
 }
 
 void CommandHandler::handleLeave(Client* client, const std::vector<std::string>& args) {
-    if (args.size() < 1) {
-        respond(client->getFD(), AERR_NEEDMOREPARAMS(client->getNick(), "PART"));
-        return;
-    }
-    std::vector<std::string> channelsToLeave = splitString(args[0], ',');
-    this->channelHandler.handleLeave(client, channelsToLeave);
+    this->channelHandler.handleLeave(client, args);
+}
+
+
+void CommandHandler::handlePing(Client* client) const {
+    respond(client->getFD(), ARPL_PONG());
 }
 
 
@@ -216,3 +203,4 @@ bool CommandHandler::isNicknameInUse(const std::string& nickname) const {
     }
     return false;
 }
+

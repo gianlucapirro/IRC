@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <signal.h>
 
 #include <iostream>
 #include <vector>

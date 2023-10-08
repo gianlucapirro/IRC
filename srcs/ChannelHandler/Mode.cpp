@@ -19,6 +19,11 @@ bool MODE_TABLE[5][2] = {
 };
 
 Channel* ChannelHandler::modeGetChannelOrRespond(Client* client, const std::string& name) {
+    // Check if name starts with #
+    if (name[0] != '#') {
+        return NULL;
+    }
+
     Channel* channel = this->getChannelByKey(name);
     if (channel == NULL) {
         respond(client->getFD(), AERR_NOSUCHCHANNEL(client->getNick(), name));

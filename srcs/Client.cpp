@@ -24,7 +24,7 @@ const std::string& Client::getHostname() const {
 }
 
 const std::string Client::getFullClientIdentifier() const {
-    return "<" + this->nick + ">!<" + this->username + ">@<" + this->hostname + ">";
+    return this->nick + "!" + this->username + "@" + this->hostname;
 };
 
 std::string& Client::getBuffer() {
@@ -114,6 +114,7 @@ bool Client::canBeRegistered() const {
 
 void Client::registerClient() {
 	this->isRegistered = true;
+    respond(this->getFD(), ARPL_NICK(this->getNick(), this->getNick()));
     respond(this->getFD(), ARPL_WELCOME(this->getNick()));
 }
 

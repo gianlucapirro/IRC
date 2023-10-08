@@ -7,6 +7,7 @@ void Server::setupServer() {
     int opt = 1;
 
     try {
+        signal(SIGPIPE, SIG_IGN);
         createSocket();
         setSocketOptions(opt);
         configureAddress();

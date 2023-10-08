@@ -23,13 +23,18 @@ class CommandHandler {
     CommandHandler(const Config *config, std::vector<Client*> *clients);
     // ~CommandHandler();
 
-    int handleCommand(Client* client, const std::string& command, const std::vector<std::string>& args);
+    void handleCommand(Client* client, const std::string& command, const std::vector<std::string>& args);
+    bool isNicknameInUse(const std::string& nickname) const;
+
     parsedCommand parseCommand(const std::string& line);
     std::vector<parsedCommand> parseCommands(const std::vector<std::string> commands);
+
 
    private:
     const Config *config;
     std::vector<Client*> *clients;  // vector of connected clients
+
+    void handleRegistration(Client *client, const std::string& command, const std::vector<std::string>& args);
 
     // commands
     void handleCap(Client* client, const std::vector<std::string>& args);
@@ -43,10 +48,10 @@ class CommandHandler {
     void handleMode(Client* client, const std::vector<std::string>& args);
     void handleTopic(Client* client, const std::vector<std::string>& args);
     void handleInvite(Client* client, const std::vector<std::string>& args);
+    void handlePing(Client* client) const;
 
 
     Client* searchClient(int clientFD);
-    bool isNicknameInUse(const std::string& nickname) const;
 };
 
 #endif

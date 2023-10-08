@@ -1,0 +1,50 @@
+
+#!/usr/bin/expect -f
+
+log_user 0
+set timeout 3
+spawn irssi
+set spawn_id1 $spawn_id
+
+
+spawn irssi
+set spawn_id2 $spawn_id
+
+
+set spawn_id $spawn_id1
+send "/connect localhost 1234 pass\n"
+expect "*Welcome*" 
+send "/join test\n"
+expect {
+    "*joined*" {
+    }
+    timeout {
+        send_user "KO\r\n"
+        exit
+    }
+}
+
+set spawn_id $spawn_id2
+send "/connect localhost 1234 pass\n"
+expect "*Welcome*" 
+send "/join test\n"
+
+expect "*joined*" 
+send "123971398\n"
+
+
+set spawn_id $spawn_id1
+expect {
+    "*123971398*" {
+    }
+    timeout {
+        send_user "KO\r\n"
+        exit
+    }
+}
+
+send_user "OK\r\n"
+
+
+
+

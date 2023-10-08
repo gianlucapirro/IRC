@@ -1,21 +1,19 @@
 #include "Server.hpp"
 #include "utils.hpp"
 
+
 void Server::sendMessage(int clientFD, const std::string& message) {
+    Client* client = this->searchClient(clientFD);
     // std::cout << message.length() << ": Message send: " << message << std::endl;
-    send(clientFD, message.c_str(), message.length(), 0);
+    if (client != NULL)
+        send(clientFD, message.c_str(), message.length(), 0);
 }
 
 void Server::handleBuffer(std::vector<std::string> commands, Client* client) {
     std::vector<parsedCommand> parsedCommands = this->commandHandler.parseCommands(commands);
-    for (std::vector<parsedCommand>::iterator it = parsedCommands.begin(); it != parsedCommands.end(); ++it) {
-        int action = this->commandHandler.handleCommand(client, it->first, it->second);
-        switch (action) {
-            case QUIT_USER:
-                this->commandHandler.channelHandler.removeClientFromAllChannels(client);
-                client->del();
-                return;
-        }
+    for (size_t i = 0; i < parsedCommands.size(); i++) {
+        parsedCommand command = parsedCommands[i];
+        this->commandHandler.handleCommand(client, command.first, command.second);
     }
 }
 
@@ -37,7 +35,6 @@ void Server::handleClient(size_t i) {
         return;
     char buffer[BUFFER_SIZE];
     ssize_t valread = read(this->fds[i].fd, buffer, BUFFER_SIZE);
-	// std::cout << buffer << std::endl;
 
     if (valread <= 0) {
         this->commandHandler.channelHandler.removeClientFromAllChannels(client);
@@ -46,6 +43,8 @@ void Server::handleClient(size_t i) {
         std::vector<std::string> commands;
         client->handleIncomingData(buffer, valread, commands);
         this->handleBuffer(commands, client);
+        if (client->getDeleted() == true)
+            this->commandHandler.channelHandler.removeClientFromAllChannels(client);
     }
 }
 

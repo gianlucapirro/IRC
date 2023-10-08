@@ -61,8 +61,6 @@ void Channel::sendMsg(Client* client, const std::vector<std::string>& args) {
 }
 
 void Channel::broadcast(std::string msg) {
-    msg += "\r\n";
-
     for (size_t i = 0; i < this->channelUsers.size(); i++) {
         ChannelUser *user = this->channelUsers[i];
         respond(user->client->getFD(), msg);
@@ -75,6 +73,8 @@ std::string Channel::getNicknames() {
         return names;
     for (size_t i = 0; i < this->channelUsers.size(); i++) {
         ChannelUser* channelUser = this->channelUsers[i];
+        if (channelUser->isOperator)
+            names += "@";
         names += channelUser->client->getNick();
         if (i != this->channelUsers.size() - 1)
             names += " ";

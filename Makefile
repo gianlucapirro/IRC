@@ -18,9 +18,11 @@ SRC = Main.cpp \
 	  ServerHelpers.cpp \
       ServerAccessors.cpp \
       CommandHandler.cpp \
-      ResponseBuilder.cpp \
+	  CommandHandlerRegistration.cpp \
 	  responses.cpp \
       ChannelHandler.cpp \
+      ChannelHandlerJoin.cpp \
+	  ChannelHandlerLeave.cpp \
 	  invite.cpp \
       Mode.cpp \
       Channel.cpp \
