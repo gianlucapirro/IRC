@@ -1,6 +1,5 @@
 #include "ChannelHandler.hpp"
 
-
 int MINUS = 0;
 int PLUS = 1;
 
@@ -11,15 +10,12 @@ struct ModeInfo {
 
 char MODES[5] = {'i', 't', 'k', 'o', 'l'};
 bool MODE_TABLE[5][2] = {
-    {false, false},
-    {false, false},
-    {false, true},  
-    {true, true},
-    {false, true},
+    {false, false}, {false, false}, {false, true}, {true, true}, {false, true},
 };
 
 Channel* ChannelHandler::modeGetChannelOrRespond(Client* client, const std::string& name) {
     // Check if name starts with #
+    std::cout << name << std::endl;
     if (name[0] != '#') {
         return NULL;
     }
@@ -32,14 +28,13 @@ Channel* ChannelHandler::modeGetChannelOrRespond(Client* client, const std::stri
 }
 
 int ChannelHandler::modeGetOperatorOrRespond(Client* client, std::string modeString) {
-
     int plusOrMinus = MINUS;
 
     if (modeString == "") {
         respond(client->getFD(), AERR_NEEDMOREPARAMS(client->getNick(), "MODE"));
         return -1;
     } else if (modeString[0] == '-')
-        plusOrMinus = MINUS; 
+        plusOrMinus = MINUS;
     else if (modeString[0] == '+')
         plusOrMinus = PLUS;
     else {
@@ -59,9 +54,8 @@ static int getModeIndex(char c) {
     return -1;
 }
 
-
-std::vector<ModeChange> ChannelHandler::modeParseArgsOrRespond(Client *client, const std::vector<std::string>& args) {
-    std::vector<ModeChange> changes; 
+std::vector<ModeChange> ChannelHandler::modeParseArgsOrRespond(Client* client, const std::vector<std::string>& args) {
+    std::vector<ModeChange> changes;
 
     if (args.size() < 2) {
         respond(client->getFD(), AERR_NEEDMOREPARAMS(client->getNick(), "MODE"));
@@ -92,7 +86,7 @@ std::vector<ModeChange> ChannelHandler::modeParseArgsOrRespond(Client *client, c
         std::string arg = "";
         bool hasArg = MODE_TABLE[index][op];
         if (hasArg == true) {
-            int argIndex = 2 + argCounter; // 0 and 1 index are filed with channel and modestring
+            int argIndex = 2 + argCounter;  // 0 and 1 index are filed with channel and modestring
             if ((size_t)argIndex >= args.size()) {
                 respond(client->getFD(), AERR_NEEDMOREPARAMS(client->getNick(), "MODE"));
                 changes.clear();
@@ -128,7 +122,6 @@ bool ChannelHandler::modeSetPass(Client* client, ModeChange change) {
     return true;
 }
 
-
 bool ChannelHandler::modeSetTopic(Client* client, ModeChange change) {
     if (change.operation == MINUS) {
         std::string resp = ARPL_MODE(client->getNick(), change.channel->getKey(), "-t", "");
@@ -163,11 +156,9 @@ bool ChannelHandler::modeSetLimit(Client* client, ModeChange change) {
 }
 
 bool ChannelHandler::modeSetOperator(Client* client, ModeChange change) {
-
     Client* toPromote = getClientByNick(this->clients, change.argument);
     ChannelUser* channelUserToPromote = NULL;
-    if (toPromote != NULL)
-        channelUserToPromote = change.channel->getChannelUser(toPromote);
+    if (toPromote != NULL) channelUserToPromote = change.channel->getChannelUser(toPromote);
     if (channelUserToPromote == NULL) {
         respond(client->getFD(), AERR_NOSUCHNICK(client->getNick(), change.argument));
         return false;
@@ -182,7 +173,6 @@ bool ChannelHandler::modeSetOperator(Client* client, ModeChange change) {
 }
 
 static bool checkOperator(Client* client, Channel* channel) {
-
     ChannelUser* channelUser = channel->getChannelUser(client);
     if (channelUser == NULL) {
         respond(client->getFD(), AERR_NOTONCHANNEL(client->getNick(), channel->getKey()));
@@ -196,7 +186,45 @@ static bool checkOperator(Client* client, Channel* channel) {
     return true;
 }
 
+void ChannelHandler::modeChannelModes(Client* client, Channel* channel) {
+    std::string modes = "";
+    if (channel->getIsInviteOnly() == true) {
+        modes += "i";
+    }
+
+    if (channel->getCanChangeTopic() == true) {
+        modes += "t";
+    }
+
+    if (channel->getPass() != "") {
+        modes += "k";
+    }
+
+    if (channel->getLimit() != 0) {
+        modes += "l";
+    }
+
+    if (modes != "") {
+        modes = "+" + modes;
+    }
+    std::cout << modes << std::endl;
+    std::string response = ARPL_PRL_CHANNELMODEIS(client->getNick(), channel->getKey(), modes);
+    respond(client->getFD(), response);
+}
+
 void ChannelHandler::handleMode(Client* client, const std::vector<std::string>& args) {
+    // check if args are not empty and if so, respond with the current settings
+
+    std::cout << args.size() << std::endl;
+    if (args.size() == 1) {
+        Channel* channel = this->modeGetChannelOrRespond(client, args[0]);
+        if (channel == NULL) {
+            return;
+        }
+        modeChannelModes(client, channel);
+        return;
+    }
+
     std::vector<ModeChange> changes = this->modeParseArgsOrRespond(client, args);
     if (changes.size() == 0) {
         return;
@@ -204,7 +232,6 @@ void ChannelHandler::handleMode(Client* client, const std::vector<std::string>& 
     if (checkOperator(client, changes[0].channel) == false) {
         return;
     }
-
 
     for (size_t i = 0; i < changes.size(); i++) {
         if (changes[i].mode == 'o') {

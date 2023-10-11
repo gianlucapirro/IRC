@@ -1,18 +1,17 @@
 #include "ChannelHandler.hpp"
 
-
-ChannelHandler::ChannelHandler(std::vector<Client*> *clients) {
+ChannelHandler::ChannelHandler(std::vector<Client*>* clients) {
     this->clients = clients;
 }
 
 void ChannelHandler::handleMsg(Client* client, const std::vector<std::string>& args) {
-    Channel *channel = this->getChannelByKey(args[0]);
+    Channel* channel = this->getChannelByKey(args[0]);
     if (channel == NULL) {
         respond(client->getFD(), AERR_NOSUCHCHANNEL(client->getNick(), args[0]));
         return;
     }
 
-    ChannelUser *channelUser = channel->getChannelUser(client);
+    ChannelUser* channelUser = channel->getChannelUser(client);
     if (channelUser == NULL) {
         respond(client->getFD(), AERR_NOTONCHANNEL(client->getNick(), channel->getKey()));
         return;
@@ -20,12 +19,8 @@ void ChannelHandler::handleMsg(Client* client, const std::vector<std::string>& a
     channel->sendMsg(client, args);
 }
 
-void ChannelHandler::handleKick(
-    Client* client,
-    const std::vector<std::string>& channelsToKick,
-    const std::vector<std::string>& clientsToKick,
-    std::string reason
-) {
+void ChannelHandler::handleKick(Client* client, const std::vector<std::string>& channelsToKick,
+                                const std::vector<std::string>& clientsToKick, std::string reason) {
     std::vector<Channel*> foundChannels;
     for (size_t i = 0; i < channelsToKick.size(); i++) {
         Channel* foundChannel = this->getChannelByKey(channelsToKick[i]);
@@ -50,7 +45,8 @@ void ChannelHandler::handleKick(
         for (size_t p = 0; p < foundClients.size(); p++) {
             foundChannels[i]->removeUser(foundClients[p]);
             possiblyDelete.push_back(foundChannels[i]);
-            std::string response = ARPL_KICK(client->getNick(), foundChannels[i]->getKey(), foundClients[p]->getNick(), reason);
+            std::string response =
+                ARPL_KICK(client->getNick(), foundChannels[i]->getKey(), foundClients[p]->getNick(), reason);
             respond(foundClients[p]->getFD(), response);
         }
     }
@@ -60,10 +56,9 @@ void ChannelHandler::handleKick(
     }
 }
 
-Channel *ChannelHandler::getChannelByKey(std::string key) {
-
+Channel* ChannelHandler::getChannelByKey(std::string key) {
     for (size_t i = 0; i < this->channels.size(); i++) {
-        Channel *channel = this->channels[i];
+        Channel* channel = this->channels[i];
         if (channel->getKey() == key) {
             return channel;
         }
@@ -71,9 +66,7 @@ Channel *ChannelHandler::getChannelByKey(std::string key) {
     return NULL;
 }
 
-
 void ChannelHandler::handleTopic(Client* client, const std::vector<std::string>& args) {
-
     if (args.size() < 1) {
         respond(client->getFD(), AERR_NEEDMOREPARAMS(client->getNick(), "TOPIC"));
         return;
@@ -104,19 +97,18 @@ void ChannelHandler::handleTopic(Client* client, const std::vector<std::string>&
         respond(client->getFD(), AERR_CHANOPRIVSNEEDED(client->getNick(), foundChannel->getKey()));
         return;
     }
-    
+
     if (args[1].length() < 2 || args[1][0] != ':') {
         respond(client->getFD(), AERR_NEEDMOREPARAMS(client->getNick(), "TOPIC"));
         return;
     }
 
-    std::string newTopic = args[1].substr(1, newTopic.size() - 1);
+    std::string newTopic = args[1].substr(1, args[1].size() - 1);
     foundChannel->setTopic(newTopic);
     std::string response = ARPL_TOPIC(client->getNick(), foundChannel->getKey(), foundChannel->getTopic());
     foundChannel->broadcast(response);
     return;
 }
-
 
 void ChannelHandler::removeClientFromAllChannels(Client* client) {
     std::vector<Channel*> possiblyDelete;
@@ -137,10 +129,8 @@ void ChannelHandler::removeClientFromAllChannels(Client* client) {
     }
 }
 
-
 void ChannelHandler::removeChannelIfEmpty(Channel* channel) {
-    if (channel->getUserCount() > 0)
-        return;
+    if (channel->getUserCount() > 0) return;
     for (size_t i = 0; i < this->channels.size(); i++) {
         if (this->channels[i] == channel) {
             this->channels.erase(this->channels.begin() + i);
