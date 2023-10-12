@@ -45,7 +45,7 @@ static void sendJoinResponse(Client* client, Channel* channel) {
     std::string names = channel->getNicknames();
     std::string topic = channel->getTopic();
     if (topic != "") {
-        respond(client->getFD(), ARPL_TOPIC(client->getNick(), channel->getKey(), topic));
+        respond(client->getFD(), ARPL_TOPIC(client->getFullClientIdentifier(), channel->getKey(), topic));
     } else {
         respond(client->getFD(), ARPL_NOTOPIC(client->getNick(), channel->getKey()));
     }

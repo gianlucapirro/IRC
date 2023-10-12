@@ -103,7 +103,7 @@ std::vector<ModeChange> ChannelHandler::modeParseArgsOrRespond(Client* client, c
 
 bool ChannelHandler::modeSetInviteOnly(Client* client, ModeChange change) {
     std::string flag = change.operation == PLUS ? "+i" : "-i";
-    std::string resp = ARPL_MODE(client->getNick(), change.channel->getKey(), flag, "");
+    std::string resp = ARPL_MODE(client->getFullClientIdentifier(), change.channel->getKey(), flag, "");
     change.channel->setInviteOnly(change.operation == PLUS ? true : false);
     change.channel->broadcast(resp);
     return true;
@@ -111,25 +111,25 @@ bool ChannelHandler::modeSetInviteOnly(Client* client, ModeChange change) {
 
 bool ChannelHandler::modeSetPass(Client* client, ModeChange change) {
     if (change.operation == MINUS) {
-        std::string resp = ARPL_MODE(client->getNick(), change.channel->getKey(), "-k", "");
+        std::string resp = ARPL_MODE(client->getFullClientIdentifier(), change.channel->getKey(), "-k", "");
         change.channel->setPass("");
         change.channel->broadcast(resp);
         return true;
     }
     change.channel->setPass(change.argument);
-    std::string resp = ARPL_MODE(client->getNick(), change.channel->getKey(), "+k", change.argument);
+    std::string resp = ARPL_MODE(client->getFullClientIdentifier(), change.channel->getKey(), "+k", change.argument);
     change.channel->broadcast(resp);
     return true;
 }
 
 bool ChannelHandler::modeSetTopic(Client* client, ModeChange change) {
     if (change.operation == MINUS) {
-        std::string resp = ARPL_MODE(client->getNick(), change.channel->getKey(), "-t", "");
+        std::string resp = ARPL_MODE(client->getFullClientIdentifier(), change.channel->getKey(), "-t", "");
         change.channel->setCanChangeTopic(false);
         change.channel->broadcast(resp);
         return true;
     } else {
-        std::string resp = ARPL_MODE(client->getNick(), change.channel->getKey(), "+t", "");
+        std::string resp = ARPL_MODE(client->getFullClientIdentifier(), change.channel->getKey(), "+t", "");
         change.channel->setCanChangeTopic(true);
         change.channel->broadcast(resp);
         return true;
@@ -139,7 +139,7 @@ bool ChannelHandler::modeSetTopic(Client* client, ModeChange change) {
 bool ChannelHandler::modeSetLimit(Client* client, ModeChange change) {
     if (change.operation == MINUS) {
         change.channel->setLimit(0);
-        std::string resp = ARPL_MODE(client->getNick(), change.channel->getKey(), "-l", "");
+        std::string resp = ARPL_MODE(client->getFullClientIdentifier(), change.channel->getKey(), "-l", "");
         change.channel->broadcast(resp);
         return true;
     }
@@ -149,7 +149,7 @@ bool ChannelHandler::modeSetLimit(Client* client, ModeChange change) {
         return false;
     }
     change.channel->setLimit(newLimit);
-    std::string resp = ARPL_MODE(client->getNick(), change.channel->getKey(), "+l", change.argument);
+    std::string resp = ARPL_MODE(client->getFullClientIdentifier(), change.channel->getKey(), "+l", change.argument);
     change.channel->broadcast(resp);
 
     return true;
@@ -166,7 +166,7 @@ bool ChannelHandler::modeSetOperator(Client* client, ModeChange change) {
 
     channelUserToPromote->isOperator = change.operation == PLUS ? true : false;
     std::string flag = change.operation == PLUS ? "+o" : "-o";
-    std::string operatorResponse = ARPL_MODE(client->getNick(), change.channel->getKey(), flag, toPromote->getNick());
+    std::string operatorResponse = ARPL_MODE(client->getFullClientIdentifier(), change.channel->getKey(), flag, toPromote->getNick());
 
     change.channel->broadcast(operatorResponse);
     return true;

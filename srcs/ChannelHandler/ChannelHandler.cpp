@@ -46,7 +46,7 @@ void ChannelHandler::handleKick(Client* client, const std::vector<std::string>& 
             foundChannels[i]->removeUser(foundClients[p]);
             possiblyDelete.push_back(foundChannels[i]);
             std::string response =
-                ARPL_KICK(client->getNick(), foundChannels[i]->getKey(), foundClients[p]->getNick(), reason);
+                ARPL_KICK(client->getFullClientIdentifier(), foundChannels[i]->getKey(), foundClients[p]->getNick(), reason);
             respond(foundClients[p]->getFD(), response);
         }
     }
@@ -89,7 +89,7 @@ void ChannelHandler::handleTopic(Client* client, const std::vector<std::string>&
             respond(client->getFD(), ARPL_NOTOPIC(client->getNick(), foundChannel->getKey()));
 
         } else {
-            respond(client->getFD(), ARPL_TOPIC(client->getNick(), foundChannel->getKey(), foundChannel->getTopic()));
+            respond(client->getFD(), ARPL_TOPIC(client->getFullClientIdentifier(), foundChannel->getKey(), foundChannel->getTopic()));
         }
         return;
     }
@@ -105,7 +105,7 @@ void ChannelHandler::handleTopic(Client* client, const std::vector<std::string>&
 
     std::string newTopic = args[1].substr(1, args[1].size() - 1);
     foundChannel->setTopic(newTopic);
-    std::string response = ARPL_TOPIC(client->getNick(), foundChannel->getKey(), foundChannel->getTopic());
+    std::string response = ARPL_TOPIC(client->getFullClientIdentifier(), foundChannel->getKey(), foundChannel->getTopic());
     foundChannel->broadcast(response);
     return;
 }
@@ -118,7 +118,7 @@ void ChannelHandler::removeClientFromAllChannels(Client* client) {
             continue;
         }
         std::string formattedClient = client->getNick();
-        std::string response = ARPL_PART(client->getNick(), channel->getKey(), "Leaving");
+        std::string response = ARPL_PART(client->getFullClientIdentifier(), channel->getKey(), "Leaving");
         channel->broadcast(response);
         channel->removeUser(client);
         possiblyDelete.push_back(channel);

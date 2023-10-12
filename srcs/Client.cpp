@@ -114,7 +114,7 @@ bool Client::canBeRegistered() const {
 
 void Client::registerClient() {
 	this->isRegistered = true;
-    respond(this->getFD(), ARPL_NICK(this->getNick(), this->getNick()));
+    respond(this->getFD(), ARPL_NICK(this->getFullClientIdentifier(), this->getNick()));
     respond(this->getFD(), ARPL_WELCOME(this->getNick()));
 }
 

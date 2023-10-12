@@ -37,7 +37,7 @@ void ChannelHandler::handleInvite(Client* client, const std::vector<std::string>
     }
 
     respond(client->getFD(), ARPL_INVITING(client->getNick(), invitedClient->getNick(), channel->getKey()));
-    respond(invitedClient->getFD(), ARPL_INVITE(client->getNick(), channel->getKey(), invitedClient->getNick()));
+    respond(invitedClient->getFD(), ARPL_INVITE(client->getFullClientIdentifier(), channel->getKey(), invitedClient->getNick()));
     
     channel->addInvite(invitedClient->getNick());
 }
