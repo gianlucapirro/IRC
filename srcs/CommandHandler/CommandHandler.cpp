@@ -117,8 +117,11 @@ void CommandHandler::handleNick(Client *client, const std::vector<std::string>& 
         return;
     }
 
-    const std::string nick = client->getNick();
-    respond(client->getFD(), ARPL_NICK(client->getFullClientIdentifier(), args[0]));
+    // send to all clients
+    for (size_t i = 1; i < this->clients->size(); ++i) {
+        Client *otherClient = (*this->clients)[i];
+        respond(otherClient->getFD(), ARPL_NICK(client->getFullClientIdentifier(), args[0]));
+    }
 
     client->setNick(args[0]);
 	if (client->canBeRegistered())
