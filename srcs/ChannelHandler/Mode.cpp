@@ -15,7 +15,6 @@ bool MODE_TABLE[5][2] = {
 
 Channel* ChannelHandler::modeGetChannelOrRespond(Client* client, const std::string& name) {
     // Check if name starts with #
-    std::cout << name << std::endl;
     if (name[0] != '#') {
         return NULL;
     }
@@ -207,7 +206,6 @@ void ChannelHandler::modeChannelModes(Client* client, Channel* channel) {
     if (modes != "") {
         modes = "+" + modes;
     }
-    std::cout << modes << std::endl;
     std::string response = ARPL_PRL_CHANNELMODEIS(client->getNick(), channel->getKey(), modes);
     respond(client->getFD(), response);
 }
@@ -215,7 +213,6 @@ void ChannelHandler::modeChannelModes(Client* client, Channel* channel) {
 void ChannelHandler::handleMode(Client* client, const std::vector<std::string>& args) {
     // check if args are not empty and if so, respond with the current settings
 
-    std::cout << args.size() << std::endl;
     if (args.size() == 1) {
         Channel* channel = this->modeGetChannelOrRespond(client, args[0]);
         if (channel == NULL) {
