@@ -161,18 +161,32 @@ void CommandHandler::handlePrivMsg(Client *client, const std::vector<std::string
 void CommandHandler::handleKick(Client *client, const std::vector<std::string>& args) {
     std::vector<std::string> channelsToKick;
     std::vector<std::string> clientsToKick;
-    std::string reason = "You have been kicked";
+    std::string reason;
 
     size_t i;
     for (i = 0; i < args.size() && args[i][0] == '#'; i++) {
         channelsToKick.push_back(args[i]);
     }
-    for (; i < args.size() && args[i] != ":"; i++) {
+    for (; i < args.size() && args[i][0] != ':'; i++) {
         clientsToKick.push_back(args[i]);
     }
-    if (i + 1 < args.size() && args[i+1] != ":") {
-        reason = args[i+1];
+
+    // Get the part after the colon
+    reason = "";
+    for (; i < args.size(); i++) {
+        std::string part = args[i];
+        if (args[i][0] == ':')
+            part.erase(0, 1);
+        reason += part + " ";
     }
+
+
+    if (reason.empty()) {
+        reason = "You have been kicked";
+    } else {
+        reason.erase(reason.size() - 1);  // remove the last space
+    }
+    std::cout << reason << std::endl;
 
     this->channelHandler.handleKick(client, channelsToKick, clientsToKick, reason);
 }
