@@ -4,7 +4,7 @@ spawn irssi
 
 
 # Send the initial input followed by a newline
-send "/connect localhost 1234 pass\n"
+send "/connect 172.20.10.10 1234 pass\n"
 
 # Pass control to the user
 interact

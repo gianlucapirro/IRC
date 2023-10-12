@@ -84,6 +84,11 @@ void ChannelHandler::handleTopic(Client* client, const std::vector<std::string>&
         return;
     }
 
+    if (foundChannel->getCanChangeTopic() == false && channelUser->isOperator == false) {
+        respond(client->getFD(), AERR_CHANOPRIVSNEEDED(client->getNick(), foundChannel->getKey()));
+        return;
+    }
+
     if (args.size() == 1) {
         if (foundChannel->getTopic() == "") {
             respond(client->getFD(), ARPL_NOTOPIC(client->getNick(), foundChannel->getKey()));
@@ -91,10 +96,6 @@ void ChannelHandler::handleTopic(Client* client, const std::vector<std::string>&
         } else {
             respond(client->getFD(), ARPL_TOPIC(client->getFullClientIdentifier(), foundChannel->getKey(), foundChannel->getTopic()));
         }
-        return;
-    }
-    if (foundChannel->getCanChangeTopic() == false && channelUser->isOperator == false) {
-        respond(client->getFD(), AERR_CHANOPRIVSNEEDED(client->getNick(), foundChannel->getKey()));
         return;
     }
 
