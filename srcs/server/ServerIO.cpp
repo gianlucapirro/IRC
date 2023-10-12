@@ -4,7 +4,6 @@
 
 void Server::sendMessage(int clientFD, const std::string& message) {
     Client* client = this->searchClient(clientFD);
-    // std::cout << message.length() << ": Message send: " << message << std::endl;
     if (client != NULL)
         send(clientFD, message.c_str(), message.length(), 0);
 }

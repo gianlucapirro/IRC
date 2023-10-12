@@ -84,7 +84,9 @@ void ChannelHandler::handleTopic(Client* client, const std::vector<std::string>&
         return;
     }
 
+    std::cout << channelUser->isOperator << std::endl;
     if (foundChannel->getCanChangeTopic() == false && channelUser->isOperator == false) {
+        std::cout << "here" << std::endl;
         respond(client->getFD(), AERR_CHANOPRIVSNEEDED(client->getNick(), foundChannel->getKey()));
         return;
     }
