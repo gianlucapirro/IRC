@@ -1,0 +1,84 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+		{
+			"name": "(gdb) Launch",
+			"type": "cppdbg",
+			"request": "launch",
+            "program": "${workspaceFolder}/ircserv",
+            "args": ["1234", "pass"],
+			"stopAtEntry": false,
+			"cwd": "${fileDirname}",
+			"preLaunchTask": "make",
+			"environment": [],
+			"externalConsole": false,
+			"MIMode": "gdb",
+			"setupCommands": [
+				{
+					"description": "Enable pretty-printing for gdb",
+					"text": "-enable-pretty-printing",
+					"ignoreFailures": true
+				},
+				{
+					"description": "Set Disassembly Flavor to Intel",
+					"text": "-gdb-set disassembly-flavor intel",
+					"ignoreFailures": true
+				}
+			]
+		},
+
+        {
+            "avoidWindowsConsoleRedirection": true,
+            "name": "test",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/ircserv",
+            "args": ["1234", "pass"],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "internalConsoleOptions": "neverOpen",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+
+
+        {
+            "name": "Remote debug irc",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/ircserv",
+            "args": [],
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "/Users/gpirro/.brew/bin/gdb",
+            "miDebuggerServerAddress": "localhost:5432",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "",
+            "serverStarted": "started",
+            "filterStderr": false,
+            "filterStdout": true
+        }
+    ]
+}
