@@ -94,7 +94,6 @@ void Client::handleIncomingData(const char* data, size_t length, std::vector<std
     size_t pos;
     while ((pos = this->buffer.find('\n')) != std::string::npos) {
         std::string command = this->buffer.substr(0, pos);
-		std::cout << "Received: " << command << std::endl;
         this->buffer.erase(0, pos + 1);
         commands.push_back(command);
     }

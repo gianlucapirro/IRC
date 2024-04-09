@@ -11,9 +11,8 @@ parsedCommand CommandHandler::parseCommand(const std::string& line) {
     std::vector<std::string> args;
     std::string arg;
 
-    iss >> command;  // Read the command part of the line
+    iss >> command;
 
-    // Read the arguments
     while (iss >> arg) {
         args.push_back(arg);
     }
@@ -28,12 +27,11 @@ std::vector<parsedCommand> CommandHandler::parseCommands(std::vector<std::string
     for (size_t i = 0; i < commands.size(); i++) {
         command = commands[i];
 
-        // remove carriage return character at the end if it exists
         if (!command.empty() && command[command.size() - 1] == '\r') {
             command.erase(command.size() - 1);
         }
 
-        parsedCommand parsedCommand = parseCommand(command);  // parse individual command
+        parsedCommand parsedCommand = parseCommand(command);
         parsedCommands.push_back(parsedCommand);
     }
     return parsedCommands;
@@ -51,7 +49,6 @@ void CommandHandler::handleCommand(Client *client, const std::string& command, c
         return;
     }
 
-    // Check registration
     if (command == "JOIN") {
         handleJoin(client, args);
     } else if (command == "PRIVMSG") {
@@ -171,7 +168,6 @@ void CommandHandler::handleKick(Client *client, const std::vector<std::string>& 
         clientsToKick.push_back(args[i]);
     }
 
-    // Get the part after the colon
     reason = "";
     for (; i < args.size(); i++) {
         std::string part = args[i];
@@ -181,12 +177,11 @@ void CommandHandler::handleKick(Client *client, const std::vector<std::string>& 
     }
 
 
-    if (reason.empty()) {
+    if (reason.empty() || reason == " ") {
         reason = "You have been kicked";
     } else {
-        reason.erase(reason.size() - 1);  // remove the last space
+        reason.erase(reason.size() - 1);
     }
-    std::cout << reason << std::endl;
 
     this->channelHandler.handleKick(client, channelsToKick, clientsToKick, reason);
 }

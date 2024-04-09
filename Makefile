@@ -2,7 +2,7 @@
 CC = c++
 
 # Compiler Flags
-CFLAGS = -Wall -Wextra -Werror -std=c++98 -g -fsanitize=address
+CFLAGS = -Wall -Wextra -Werror -std=c++98
 
 # Includes
 INCLUDES = -Iincludes
@@ -30,13 +30,10 @@ SRC = Main.cpp \
       Config.cpp \
 	  utils.cpp
 
-# Prefix 'srcs/' to each source file
 SRC := $(addprefix srcs/, $(SRC))
 
-# Object files with 'objs/' prefix and .o extension
 OBJS = $(patsubst srcs/%.cpp, objs/%.o, $(SRC))
 
-# vpath directive to search for the .cpp files in all subdirectories of srcs/
 vpath %.cpp $(shell find srcs -type d)
 
 all: $(PROG)
@@ -55,25 +52,3 @@ fclean: clean
 	rm -f $(PROG)
 
 re: fclean all
-
-server:
-	docker-compose up --build -d
-	docker-compose exec irc_server bash
-
-attach:
-	docker-compose exec irc_server bash
-
-valgrind: re
-	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./ircserv 1234 password
-
-irssi:
-	docker-compose exec irc_server irssi
-
-irs:
-	expect start_irs.exp
-
-nc:
-	nc localhost 1234
-
-start_netcat:
-	printf "PASS pass \r\nNICK jort \r\nUSER root root localhost :root \r\n" | nc localhost 1233
